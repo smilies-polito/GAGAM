@@ -101,11 +101,11 @@ python3 classifyPeaks.py '../TMPDATA/SNARE/GSE126074_AdBrainCortex_SNAREseq_chro
 
 The script will output a file containing the labeled peaks for each dataset in the respective folder:
 
-- ../TMPResults/labeled_peaks/10x_V1_PBMChuman/encodeCcreCombined_hg38_ucscLabel_classifiedPeaks.csv
-- ../TMPResults/labeled_peaks/10X_V2_PBMC/encodeCcreCombined_hg38_ucscLabel_classifiedPeaks.csv
-- ../TMPResults/labeled_peaks/buenrostro/encodeCcreCombined_hg38_ucscLabel_classifiedPeaks.csv
-- ../TMPResults/labeled_peaks/10X_V1_Brain/encodeCcreCombined_ucscLabel_classifiedPeaks.csv
-- ../TMPResults/labeled_peaks/SNARE/encodeCcreCombined_ucscLabel_classifiedPeaks.csv
+- ../TMPResults/labeled_peaks/10x_V1_PBMChuman/cCRE_labeled_peaks.tsv
+- ../TMPResults/labeled_peaks/10X_V2_PBMC/cCRE_labeled_peaks.tsv
+- ../TMPResults/labeled_peaks/buenrostro/cCRE_labeled_peaks.tsv
+- ../TMPResults/labeled_peaks/10X_V1_Brain/cCRE_labeled_peaks.tsv
+- ../TMPResults/labeled_peaks/SNARE/cCRE_labeled_peaks.tsv
 
 ## Phase 2: GAMs construction and clustering analysis
 
