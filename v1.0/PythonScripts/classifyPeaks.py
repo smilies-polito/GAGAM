@@ -62,7 +62,7 @@ def grabAnnotations(trackName, chrom, chromStart, chromEnd):
 # columnsNames is the list of columns from the specified tracks
 # to be considered for peak classification.
 # it saves the labeled Peaks to a .csv file
-def classifyPeaks(datasetName, peaksDataFrame, trackName, columnsNames):
+def classifyPeaks(peaksDataFrame, trackName, columnsNames):
 
     peakLabel = [''] * peaksDataFrame.shape[0]
 
@@ -76,10 +76,9 @@ def classifyPeaks(datasetName, peaksDataFrame, trackName, columnsNames):
 
     peaksDataFrame[str(trackName) + '_' + str(columnsNames[0])] = pd.Series(peakLabel[:])
 
-    # saving the classifiedPeaks_df to the output file
-    peaksDataFrame.to_csv(path_or_buf= '../TMPResults/labeled_peaks/' + datasetName + '/labeled_peaks/cCRE_labeled_peaks.tsv', sep='\t')
+    return peaksDataFrame
 
-
+    
 if __name__ == '__main__':
 
     # sys.argv[1] -> Peaks filename
@@ -91,6 +90,8 @@ if __name__ == '__main__':
 
     peaks = grabPeaks(peaks_path)
 
-    classifyPeaks(dataset_name, peaks, annotation_track_path, columnsNames=['ucscLabel'])
+    labeledPeaks = classifyPeaks(peaks, annotation_track_path, columnsNames=['ucscLabel'])
+    # saving the classifiedPeaks_df to the output file
+    labeledPeaks.to_csv(path_or_buf= '../TMPResults/labeled_peaks/' + dataset_name + '/cCRE_labeled_peaks.tsv', sep='\t')
 
     print('The Peaks file at ', peaks_path, ' was labeled with genomic annotations from ', annotation_track_path)
