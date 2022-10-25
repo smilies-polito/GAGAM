@@ -1,10 +1,8 @@
 import sys
-
 import pandas as pd
 import numpy as np
 from scipy import stats
 import os
-import time
 
 # The createBiomarkersList function returns a list of unique marker genes
 # taking as input CellMarkerFile .csv file downloaded

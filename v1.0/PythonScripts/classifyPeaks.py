@@ -3,6 +3,7 @@ import sys
 import pandas as pd
 import subprocess as sp
 import csv
+import os
 
 # The grabPeaks function uses the bigBed file containing Peaks from ATAC-seq
 # to build a dataframe of Peaks for further analysis
@@ -91,7 +92,14 @@ if __name__ == '__main__':
     peaks = grabPeaks(peaks_path)
 
     labeledPeaks = classifyPeaks(peaks, annotation_track_path, columnsNames=['ucscLabel'])
+
+    results_path = '../TMPResults/labeled_peaks/' + dataset_name + '/'
     # saving the classifiedPeaks_df to the output file
-    labeledPeaks.to_csv(path_or_buf= '../TMPResults/labeled_peaks/' + dataset_name + '/cCRE_labeled_peaks.tsv', sep='\t')
+    if os.path.isdir(results_path):
+        labeledPeaks.to_csv(path_or_buf= results_path + 'cCRE_labeled_peaks.tsv', sep='\t')
+    else:
+        os.makedirs(results_path)
+        labeledPeaks.to_csv(path_or_buf= results_path + 'cCRE_labeled_peaks.tsv', sep='\t')
 
     print('The Peaks file at ', peaks_path, ' was labeled with genomic annotations from ', annotation_track_path)
+    print('Labeled peaks are saved at: ', results_path)
