@@ -148,36 +148,40 @@ def residual_average_gini_index(gene_scores,folder_clusters,
 
 if __name__ == '__main__':
 
-    # sys.argv[1] -> <GAMFilename>
+    # sys.argv[1] -> <GAMFilepath>
     # sys.argv[2] -> <classificationsFolderPath>
-    # sys.argv[3] -> <housekeepingFilename>
-    # sys.argv[4] -> <markerFilename>
+    # sys.argv[3] -> <housekeepingFilepath>
+    # sys.argv[4] -> <markerFilepath>
 
     # path to GAM file
-    gene_activity_matrix_path = '../human_pbmc_example/' + sys.argv[1] #project_name + '/computing_RAGI/gene_scores/'
+    gene_activity_matrix_path = sys.argv[1]
     print ('Considering GAM file at: ' + gene_activity_matrix_path)
 
 
     # path to classifications folder
-    clustering_outputs_folder = '../human_pbmc_example/classifications/' + sys.argv[2] + '/'  #project_name + '/computing_RAGI/clustering_outputs/'
+    clustering_outputs_folder = sys.argv[2]
     print ('Considering classifications at: ' + clustering_outputs_folder)
 
     # path to housekeeping genes file
-    housekeeping_genes_path = '../DATA/IWBBIO_2022/Housekeeping_genes/' + sys.argv[3] #project_name + '/computing_RAGI/housekeeping_genes/'
+    housekeeping_genes_path = sys.argv[3]
     print ('Considering housekeeping genes file at: ' + housekeeping_genes_path)
 
     # path to housekeeping genes file
-    marker_genes_path = '../DATA/IWBBIO_2022/Marker_genes/' + sys.argv[4] #project_name + '/computing_RAGI/marker_genes/'
+    marker_genes_path = sys.argv[4]
     print ('Considering marker genes file at: ' + marker_genes_path)
 
+
+
+
     # path to RAGI computations results
-    results_RAGI_path = '../human_pbmc_example/Performance_metrics/RAGI/' #project_name + '/computing_RAGI/RAGI/'
+    dataset_name = os.path.basename(sys.argv[1])
+    results_RAGI_path = '../TMPResults/metrics/' + dataset_name + '/'
     print ('RAGI computation results will be saved at: ' + results_RAGI_path)
 
     # extracting housekeeping genes list
     # data from TODO: insert link
-    housekeeping_genes_list = createHousekeepingGenesList(housekeeping_genes_path)# + '/housekeeping_genes.txt')
-    print('Creating housekeeping genes list from: ' + housekeeping_genes_path)# + '/housekeeping_genes.txt')
+    housekeeping_genes_list = createHousekeepingGenesList(housekeeping_genes_path)
+    print('Creating housekeeping genes list from: ' + housekeeping_genes_path)
 
     # extracting marker genes list
     # data from http://bio-bigdata.hrbmu.edu.cn/CellMarker
@@ -193,9 +197,9 @@ if __name__ == '__main__':
 
     # save RAGI results file
     if os.path.isdir(results_RAGI_path):
-        df_metrics.to_csv(results_RAGI_path + '/RAGI_results.csv') #+ os.path.splitext(gene_activity_matrix_path)[0] + '.csv')
+        df_metrics.to_csv(results_RAGI_path + 'RAGI_table.csv') #+ os.path.splitext(gene_activity_matrix_path)[0] + '.csv')
     else:
         os.makedirs(results_RAGI_path)
-        df_metrics.to_csv(results_RAGI_path + '/RAGI_results.csv')#+ os.path.splitext(gene_activity_matrix_path)[0] + '.csv')
+        df_metrics.to_csv(results_RAGI_path + 'RAGI_table.csv')#+ os.path.splitext(gene_activity_matrix_path)[0] + '.csv')
 
     print('Finished RAGI computations for ' + gene_activity_matrix_path)
