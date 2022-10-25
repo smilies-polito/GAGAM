@@ -103,44 +103,80 @@ library(ggplot2)
 library(Signac)
 library(Seurat)
 library(GenomeInfoDb)
+############ functions ######
+#########functions ####
+split_peak_names <- function(inp) {
+  out <- stringr::str_split_fixed(stringi::stri_reverse(inp),
+                                  ":|-|_", 3)
+  out[,1] <- stringi::stri_reverse(out[,1])
+  out[,2] <- stringi::stri_reverse(out[,2])
+  out[,3] <- stringi::stri_reverse(out[,3])
+  out[,c(3,2,1), drop=FALSE]
+}
+make_sparse_matrix <- function(data,
+                               i.name = "Peak1",
+                               j.name = "Peak2",
+                               x.name = "value") {
+  if(!i.name %in% names(data) |
+     !j.name %in% names(data) |
+     !x.name %in% names(data)) {
+    stop('i.name, j.name, and x.name must be columns in data')
+  }
 
-### 10x_V1_PBMChuman is the folder for the dataset elements; it is the folder where to put the dtasets of human PBMC
+  data$i <- as.character(data[,i.name])
+  data$j <- as.character(data[,j.name])
+  data$x <- data[,x.name]
+
+  if(!class(data$x) %in%  c("numeric", "integer"))
+    stop('x.name column must be numeric')
+
+  peaks <- data.frame(Peak = unique(c(data$i, data$j)),
+                      index = seq_len(length(unique(c(data$i, data$j)))))
+
+  data <- data[,c("i", "j", "x")]
+
+  data <- rbind(data, data.frame(i=peaks$Peak, j = peaks$Peak, x = 0))
+  data <- data[!duplicated(data[,c("i", "j", "x")]),]
+  data <- data.table::as.data.table(data)
+  peaks <- data.table::as.data.table(peaks)
+  data.table::setkey(data, "i")
+  data.table::setkey(peaks, "Peak")
+  data <- data[peaks]
+  data.table::setkey(data, "j")
+  data <- data[peaks]
+  data <- as.data.frame(data)
+
+  data <- data[,c("index", "i.index", "x")]
+  data2 <- data
+  names(data2) <- c("i.index", "index", "x")
+
+  data <- rbind(data, data2)
+
+  data <- data[!duplicated(data[,c("index", "i.index")]),]
+  data <- data[data$index >= data$i.index,]
+
+  sp_mat <- Matrix::sparseMatrix(i=as.numeric(data$index),
+                                 j=as.numeric(data$i.index),
+                                 x=data$x,
+                                 symmetric = TRUE)
+
+  colnames(sp_mat) <- peaks[order(peaks$index),]$Peak
+  row.names(sp_mat) <- peaks[order(peaks$index),]$Peak
+  return(sp_mat)
+}
+########
+
+### 10X_V2_PBMC is the folder for the dataset elements; it is the folder where to put the dtasets of human PBMC
 #  peaks.bed -> peaks file
 #  matrix.h5 - > scATAC-seq matrix
 #  conversion_error.txt
 #
 # follows loading of the dataset
 
-v1_pbmc_peaks <- read.table("..DATA/10x_V1_PBMChuman/peaks.bed")
+v1_pbmc_peaks <- read.table("../TMPDATA/10X_V2_PBMC/peaks.bed")
 v1_pbmc_peaks <- paste0(v1_pbmc_peaks$V1, "_", v1_pbmc_peaks$V2, "_", v1_pbmc_peaks$V3)
-v1_pbmc_matrix <- Read10X_h5("..DATA/10x_V1_PBMChuman/matrix.h5")
+v1_pbmc_matrix <- Read10X_h5("../TMPDATA/10X_V2_PBMC/atac_pbmc_5k_nextgem_filtered_peak_bc_matrix.h5")
 rownames(v1_pbmc_matrix) <- v1_pbmc_peaks
-
-##### only for conversion errors
-conversion_error <- read.table("../conversion_error.txt")
-conversion_error <- paste0(conversion_error$V1,"_",conversion_error$V2, "_", conversion_error$V3)
-
-diff <- setdiff(v1_pbmc_peaks, conversion_error)
-
-v1_pbmc_matrix <- v1_pbmc_matrix[diff,]
-
-genome_ref = read.table("../DATA/Genomes/hg38/hg38.p13.chrom.sizes.txt")
-genome_ref <- genome_ref[1:24,]
-
-
-hg38peaks_v1_pbmc <- read.table("../DATA/10x_V1_PBMChuman/hglft_genome_327f4_5c430.bed")
-new_peaks <- paste0(hg38peaks_v1_pbmc$V1,"_",hg38peaks_v1_pbmc$V2, "_", hg38peaks_v1_pbmc$V3)
-
-new_new_peaks <- hg38peaks_v1_pbmc[hg38peaks_v1_pbmc$V1 %in% genome_ref$V1,]
-new_new_peaks <- paste0(new_new_peaks$V1,"_",new_new_peaks$V2, "_", new_new_peaks$V3)
-new_new_peaks <- new_new_peaks[!duplicated(new_new_peaks)]
-
-diff2 <- setdiff(new_peaks, new_new_peaks)
-diff3 <- setdiff(new_peaks, diff2)
-rownames(v1_pbmc_matrix) <- new_peaks
-v1_pbmc_matrix <- v1_pbmc_matrix[diff3,]
-rownames(v1_pbmc_matrix) <- new_new_peaks
-#####
 
 
 v1_pbmc_matrix@x[v1_pbmc_matrix@x >0] <- 1
@@ -162,7 +198,7 @@ cicero_cds <- make_cicero_cds(input_cds, reduced_coordinates = umap_coords)
 conns <- run_cicero(cicero_cds, genome_ref)
 
 
-saveRDS(conns, "../TMPResults/conns_synthetic")
+saveRDS(conns, "../TMPResults/conns_10X_V2_PBMC")
 
 con_val <- conns[conns$coaccess > 0,]
 con_val <- con_val[!is.na(con_val$coaccess),]
@@ -256,13 +292,18 @@ cds_cicero@colData@listData[["label"]] <- synthetic_metadata$label
 #marker_test_res_rna <- top_markers(cds_cicero)
 #plot_cells(cds_cicero, genes = "Spi1")
 
+class <- as.data.frame(input_cds@clusters@listData[["UMAP"]][["clusters"]])
+colnames(class) <- "CLASS"
+
 c_gam <- data.matrix(exprs(cds_cicero))
-write.table(c_gam, file='../TMPResults/cicero_gam.tsv', quote=FALSE, sep='\t', col.names = NA)
-write.table(class2, file='../TMPResults/classification/cicero_classification.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(c_gam, file='../TMPResults/GAM/10X_V2_PBMC/cicero.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(class2, file='../TMPResults/classifications/10X_V2_PBMC/cicero_classifications.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(class, file='../TMPResults/classifications/10X_V2_PBMC/atac_classifications.tsv', quote=FALSE, sep='\t', col.names = NA)
 
 
-ARI(synthetic_metadata$label, class2$CLASS)
-AMI(synthetic_metadata$label, class2$CLASS)
+
+ARI(class$CLASS, class2$CLASS)
+AMI(class$CLASS, class2$CLASS)
 
 ####
 
@@ -350,12 +391,12 @@ cds_gs@colData@listData[["ATAC"]] <- label$CLASS
 #plot_cells(cds_gs)
 
 gs_gam <- data.matrix(exprs(cds_gs))
-write.table(c_gam, file='../TMPResults/genescoring_gam.tsv', quote=FALSE, sep='\t', col.names = NA)
-write.table(class3, file='../TMPResults/classification/genescoring_classification.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(c_gam, file='../TMPResults/GAM/10X_V2_PBMC/genescoring.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(class3, file='../TMPResults/classifications/10X_V2_PBMC/genescoring_classifications.tsv', quote=FALSE, sep='\t', col.names = NA)
 
 
-ARI(label$CLASS, class3$CLASS)
-AMI(label$CLASS, class3$CLASS)
+ARI(class$CLASS, class3$CLASS)
+AMI(class$CLASS, class3$CLASS)
 
 #########
 
@@ -382,7 +423,7 @@ PBMC <- CreateSeuratObject(
 
 ########
 
-labeled_peaks <- read.csv("../TMPResults/leabeled_peaks/encodeCcreCombined_hg38_ucscLabel_classifiedPeaks.csv", sep = "\t")
+labeled_peaks <- read.csv("../TMPResults/leabeled_peaks/10X_V2_PBMC/encodeCcreCombined_hg38_ucscLabel_classifiedPeaks.csv", sep = "\t")
 #labeled_peaks_multi <- read.csv("C:/Users/loren/IWBBIO/data/labeled peaks/classifiedPeaks_multiCols.csv", sep = "\t")
 
 nmax <- max(stringr::str_count(labeled_peaks$encodeCcreCombined_hg38_ucscLabel, "\t")) + 1
@@ -716,75 +757,16 @@ colnames(final_GAM_first) <- "CLASS"
 
 tsv <- data.matrix(exprs(final_GAM_cds))
 
-write.table(tsv, file='../TMPResults/gagam.tsv', quote=FALSE, sep='\t', col.names = NA)
-write.table(final_GAM_first, file='../TMPResults/gagam_classification.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(tsv, file='../TMPResults/GAM/10X_V2_PBMC/gagam.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(final_GAM_first, file='../TMPResults/classifications/10X_V2_PBMC/gagam_classifications.tsv', quote=FALSE, sep='\t', col.names = NA)
 
 
-ARI(synthetic_metadata$label, final_GAM_first$CLASS)
-AMI(synthetic_metadata$label, final_GAM_first$CLASS)
+ARI(class$CLASS, final_GAM_first$CLASS)
+AMI(class$CLASS, final_GAM_first$CLASS)
 
 
 
-#########functions ####
-split_peak_names <- function(inp) {
-  out <- stringr::str_split_fixed(stringi::stri_reverse(inp), 
-                                  ":|-|_", 3)
-  out[,1] <- stringi::stri_reverse(out[,1])
-  out[,2] <- stringi::stri_reverse(out[,2])
-  out[,3] <- stringi::stri_reverse(out[,3])
-  out[,c(3,2,1), drop=FALSE]
-}
-make_sparse_matrix <- function(data,
-                               i.name = "Peak1",
-                               j.name = "Peak2",
-                               x.name = "value") {
-  if(!i.name %in% names(data) |
-     !j.name %in% names(data) |
-     !x.name %in% names(data)) {
-    stop('i.name, j.name, and x.name must be columns in data')
-  }
-  
-  data$i <- as.character(data[,i.name])
-  data$j <- as.character(data[,j.name])
-  data$x <- data[,x.name]
-  
-  if(!class(data$x) %in%  c("numeric", "integer"))
-    stop('x.name column must be numeric')
-  
-  peaks <- data.frame(Peak = unique(c(data$i, data$j)),
-                      index = seq_len(length(unique(c(data$i, data$j)))))
-  
-  data <- data[,c("i", "j", "x")]
-  
-  data <- rbind(data, data.frame(i=peaks$Peak, j = peaks$Peak, x = 0))
-  data <- data[!duplicated(data[,c("i", "j", "x")]),]
-  data <- data.table::as.data.table(data)
-  peaks <- data.table::as.data.table(peaks)
-  data.table::setkey(data, "i")
-  data.table::setkey(peaks, "Peak")
-  data <- data[peaks]
-  data.table::setkey(data, "j")
-  data <- data[peaks]
-  data <- as.data.frame(data)
-  
-  data <- data[,c("index", "i.index", "x")]
-  data2 <- data
-  names(data2) <- c("i.index", "index", "x")
-  
-  data <- rbind(data, data2)
-  
-  data <- data[!duplicated(data[,c("index", "i.index")]),]
-  data <- data[data$index >= data$i.index,]
-  
-  sp_mat <- Matrix::sparseMatrix(i=as.numeric(data$index),
-                                 j=as.numeric(data$i.index),
-                                 x=data$x,
-                                 symmetric = TRUE)
-  
-  colnames(sp_mat) <- peaks[order(peaks$index),]$Peak
-  row.names(sp_mat) <- peaks[order(peaks$index),]$Peak
-  return(sp_mat)
-}
+
 
 
 

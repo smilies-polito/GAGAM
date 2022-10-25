@@ -104,6 +104,65 @@ library(Signac)
 library(Seurat)
 library(GenomeInfoDb)
 
+split_peak_names <- function(inp) {
+  out <- stringr::str_split_fixed(stringi::stri_reverse(inp),
+                                  ":|-|_", 3)
+  out[,1] <- stringi::stri_reverse(out[,1])
+  out[,2] <- stringi::stri_reverse(out[,2])
+  out[,3] <- stringi::stri_reverse(out[,3])
+  out[,c(3,2,1), drop=FALSE]
+}
+make_sparse_matrix <- function(data,
+                               i.name = "Peak1",
+                               j.name = "Peak2",
+                               x.name = "value") {
+  if(!i.name %in% names(data) |
+     !j.name %in% names(data) |
+     !x.name %in% names(data)) {
+    stop('i.name, j.name, and x.name must be columns in data')
+  }
+
+  data$i <- as.character(data[,i.name])
+  data$j <- as.character(data[,j.name])
+  data$x <- data[,x.name]
+
+  if(!class(data$x) %in%  c("numeric", "integer"))
+    stop('x.name column must be numeric')
+
+  peaks <- data.frame(Peak = unique(c(data$i, data$j)),
+                      index = seq_len(length(unique(c(data$i, data$j)))))
+
+  data <- data[,c("i", "j", "x")]
+
+  data <- rbind(data, data.frame(i=peaks$Peak, j = peaks$Peak, x = 0))
+  data <- data[!duplicated(data[,c("i", "j", "x")]),]
+  data <- data.table::as.data.table(data)
+  peaks <- data.table::as.data.table(peaks)
+  data.table::setkey(data, "i")
+  data.table::setkey(peaks, "Peak")
+  data <- data[peaks]
+  data.table::setkey(data, "j")
+  data <- data[peaks]
+  data <- as.data.frame(data)
+
+  data <- data[,c("index", "i.index", "x")]
+  data2 <- data
+  names(data2) <- c("i.index", "index", "x")
+
+  data <- rbind(data, data2)
+
+  data <- data[!duplicated(data[,c("index", "i.index")]),]
+  data <- data[data$index >= data$i.index,]
+
+  sp_mat <- Matrix::sparseMatrix(i=as.numeric(data$index),
+                                 j=as.numeric(data$i.index),
+                                 x=data$x,
+                                 symmetric = TRUE)
+
+  colnames(sp_mat) <- peaks[order(peaks$index),]$Peak
+  row.names(sp_mat) <- peaks[order(peaks$index),]$Peak
+  return(sp_mat)
+}
 
 ### buenrostro is the folder for the dataset elements
 #  peaks.bed -> peaks file
@@ -113,20 +172,20 @@ library(GenomeInfoDb)
 #
 # follows loading of the dataset
 
-conversion_error <- read.table("../buenrostro/conversion_error.txt")
+conversion_error <- read.table("../TMPDATA/buenrostro/conversion_error.txt")
 conversion_error <- paste0(conversion_error$V1,"_",conversion_error$V2, "_", conversion_error$V3)
 
-orig_peaks <- read.table("../buenrostro/peaks.bed")
+orig_peaks <- read.table("../TMPDATA/buenrostro/GSE96769_PeakFile_20160207.csv.bed")
 orig_peaks <- paste0(orig_peaks$V1,"_",orig_peaks$V2, "_", orig_peaks$V3)
 
 diff <- setdiff(orig_peaks, conversion_error)
 
-conns_buenrostro <- readRDS("../TMPResults/conns_buenrostro")
+#conns_buenrostro <- readRDS("../TMPResults/conns_buenrostro")
  
 
 
-buenrostro_matrix <- read.table("../buenrostro/matrix.txt")
-buenrostro_cells<- read.csv2("../buenrostro/cells.txt",sep = ";", header = FALSE,)
+buenrostro_matrix <- read.table("../TMPDATA/buenrostro/GSE96769_scATACseq_counts.txt")
+#buenrostro_cells<- read.csv2("../buenrostro/cells.txt",sep = ";", header = FALSE,)
 cells <- t(buenrostro_cells)
 cells <- as.data.frame(cells)
 cells <- cells$V1
@@ -142,7 +201,7 @@ rownames(mat) <- orig_peaks
 mat <- mat[diff,]
 
 
-hg38peaks_buenrostro <- read.table("../DATA/buenrostro/hglft_genome_241cf_9a53c0.bed")
+hg38peaks_buenrostro <- read.table("../TMPDATA/buenrostro/hglft_genome_241cf_9a53c0.bed")
 new_peaks <- paste0(hg38peaks_buenrostro$V1,"_",hg38peaks_buenrostro$V2, "_", hg38peaks_buenrostro$V3)
 new_new_peaks <- hg38peaks_buenrostro[hg38peaks_buenrostro$V1 %in% genome_ref$V1,]
 new_new_peaks <- paste0(new_new_peaks$V1,"_",new_new_peaks$V2, "_", new_new_peaks$V3)
@@ -174,7 +233,7 @@ input_cds <- cluster_cells(input_cds)
 #plot_cells(input_cds, color_cells_by = "label", label_groups_by_cluster = FALSE, label_cell_groups = FALSE)
 
 
-genome_ref = read.table("../DATA/genomes/hg38/hg38.p13.chrom.sizes.txt")
+genome_ref = read.table("../DATA/Genomes/hg38/hg38.p13.chrom.sizes.txt")
 genome_ref <- genome_ref[1:24,]
 
 
@@ -189,7 +248,7 @@ con_val <- con_val[!is.na(con_val$coaccess),]
 coaccess <- signif(mean(con_val$coaccess), digits = 2)
 
 
-gene_anno <- rtracklayer::readGFF("../DATA/IWBBIO_2022/Genomes/hg38/GCF_000001405.39_GRCh38.p13_genomic.gtf.gz")
+gene_anno <- rtracklayer::readGFF("../DATA/Genomes/hg38/GCF_000001405.39_GRCh38.p13_genomic.gtf.gz")
 gene_anno <- gene_anno[gene_anno$seqid %in% chr2acc$Accession.version,]
 gene_anno$seqid <- as.factor(as.character(gene_anno$seqid))
 levels(gene_anno$seqid) <- chr2acc$X.Chromosome
@@ -276,8 +335,8 @@ ARI(metadata$label, class2$CLASS)
 AMI(metadata$label, class2$CLASS)
 
 c_gam <- data.matrix(exprs(cds_cicero))
-write.table(c_gam, file='../TMPResults/cicero_gam.tsv', quote=FALSE, sep='\t', col.names = NA)
-write.table(class2, file='../TMPResults/classification/cicero_classification.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(c_gam, file='../TMPResults/GAM/buenrostro/cicero.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(class2, file='../TMPResults/classifications/buenrostro/cicero_classifications.tsv', quote=FALSE, sep='\t', col.names = NA)
 
 
 
@@ -290,7 +349,7 @@ library(dplyr)
 library(BuenColors)
 library(Matrix)
 
-gene_anno <- rtracklayer::readGFF("../DATA/IWBBIO_2022/Genomes/hg38/GCF_000001405.39_GRCh38.p13_genomic.gtf.gz")
+gene_anno <- rtracklayer::readGFF("../DATA/Genomes/hg38/GCF_000001405.39_GRCh38.p13_genomic.gtf.gz")
 gene_anno$chromosome <- gene_anno$seqid
 #gene_anno$chromosome <- paste0("chr", gene_anno$seqid)
 gene_anno$gene <- gene_anno$gene_id
@@ -366,8 +425,8 @@ cds_gs@colData@listData[["ATAC"]] <- label$CLASS
 #plot_cells(cds_gs)
 
 gs_gam <- data.matrix(exprs(cds_gs))
-write.table(c_gam, file='../TMPResults/genescoring_gam.tsv', quote=FALSE, sep='\t', col.names = NA)
-write.table(class3, file='../TMPResults/classification/genescoring_classification.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(c_gam, file='../TMPResults/GAM/buenrostro/genescoring.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(class3, file='../TMPResults/classifications/buenrostro/genescoring_classifications.tsv', quote=FALSE, sep='\t', col.names = NA)
 
 
 ARI(label$CLASS, class3$CLASS)
@@ -400,7 +459,7 @@ rownames(mat[20863,])
 
 #### labeled peaks####
 
-labeled_peaks <- read.csv("../TMPResults/labeled_peaks/encodeCcreCombined_hg38_ucscLabel_classifiedPeaks.csv", sep = "\t")
+labeled_peaks <- read.csv("../TMPResults/labeled_peaks/buenrostro/encodeCcreCombined_hg38_ucscLabel_classifiedPeaks.csv", sep = "\t")
 
 nmax <- max(stringr::str_count(labeled_peaks$encodeCcreCombined_hg38_ucscLabel, "\t")) + 1
 
@@ -445,9 +504,9 @@ non_prom_peaks <- peaks_multi_info[non_prom_list,]
 
 
 #### refseq #####
-refseq_gene_anno <-  rtracklayer::readGFF("../DATA/IWBBIO_2022/Genomes/hg38/GCF_000001405.39_GRCh38.p13_genomic.gtf.gz")
+refseq_gene_anno <-  rtracklayer::readGFF("../DATA/Genomes/hg38/GCF_000001405.39_GRCh38.p13_genomic.gtf.gz")
 
-chr2acc <- read.csv("../DATA/IWBBIO_2022/Genomes/hg38/chr2acc.txt", sep = "\t")
+chr2acc <- read.csv("../DATA/Genomes/hg38/chr2acc.txt", sep = "\t")
 
 
 refseq_peaks_prom <- peaks_multi_info[peaks_multi_info$is.prom == "TRUE",]
@@ -718,24 +777,19 @@ final_GAM_cds@colData@listData[["label"]] <- metadata$label
 final_GAM_first <- as.data.frame(final_GAM_cds@clusters@listData[["UMAP"]][["clusters"]])
 colnames(final_GAM_first) <- "CLASS"
 
+class <- as.data.frame(input_cds@clusters@listData[["UMAP"]][["clusters"]])
+colnames(class) <- "CLASS"
+
 ARI(metadata$label, final_GAM_first$CLASS)
 AMI(metadata$label, final_GAM_first$CLASS)
 
 
 
-hpusekeeping_genes <- read.table("../DATA/buenrostro/HK_genes.txt")
-housekeeping_genes <- hpusekeeping_genes$V1
-diff <- setdiff(housekeeping_genes, prom_gene_name)
-our_house <- setdiff(housekeeping_genes, diff)
-write.table(our_house, file='../TMPResults/housekeeping_genes-buenrostro.txt', quote=FALSE, sep='\t')
-
 tsv <- data.matrix(exprs(final_GAM_cds))
 
-write.table(tsv, file='../TMPResults/gagam.tsv', quote=FALSE, sep='\t', col.names = NA)
-write.table(final_GAM_first, file='../TMPResults/gagam_classification.tsv', quote=FALSE, sep='\t', col.names = NA)
-
-
-markers <- top_markers(final_GAM_cds, group_cells_by = "label")
+write.table(tsv, file='../TMPResults/GAM/buenrostro/gagam.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(final_GAM_first, file='../TMPResults/classifications/buenrostro/gagam_classifications.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(metadata, file='../TMPResults/classifications/buenrostro/label_classifications.tsv', quote=FALSE, sep='\t', col.names = NA)
 
 
 #plot_cells(final_GAM_cds, genes = "NKG7")

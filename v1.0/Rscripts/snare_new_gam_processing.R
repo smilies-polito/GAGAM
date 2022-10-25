@@ -104,6 +104,66 @@ library(Signac)
 library(Seurat)
 library(GenomeInfoDb)
 
+split_peak_names <- function(inp) {
+  out <- stringr::str_split_fixed(stringi::stri_reverse(inp),
+                                  ":|-|_", 3)
+  out[,1] <- stringi::stri_reverse(out[,1])
+  out[,2] <- stringi::stri_reverse(out[,2])
+  out[,3] <- stringi::stri_reverse(out[,3])
+  out[,c(3,2,1), drop=FALSE]
+}
+make_sparse_matrix <- function(data,
+                               i.name = "Peak1",
+                               j.name = "Peak2",
+                               x.name = "value") {
+  if(!i.name %in% names(data) |
+     !j.name %in% names(data) |
+     !x.name %in% names(data)) {
+    stop('i.name, j.name, and x.name must be columns in data')
+  }
+
+  data$i <- as.character(data[,i.name])
+  data$j <- as.character(data[,j.name])
+  data$x <- data[,x.name]
+
+  if(!class(data$x) %in%  c("numeric", "integer"))
+    stop('x.name column must be numeric')
+
+  peaks <- data.frame(Peak = unique(c(data$i, data$j)),
+                      index = seq_len(length(unique(c(data$i, data$j)))))
+
+  data <- data[,c("i", "j", "x")]
+
+  data <- rbind(data, data.frame(i=peaks$Peak, j = peaks$Peak, x = 0))
+  data <- data[!duplicated(data[,c("i", "j", "x")]),]
+  data <- data.table::as.data.table(data)
+  peaks <- data.table::as.data.table(peaks)
+  data.table::setkey(data, "i")
+  data.table::setkey(peaks, "Peak")
+  data <- data[peaks]
+  data.table::setkey(data, "j")
+  data <- data[peaks]
+  data <- as.data.frame(data)
+
+  data <- data[,c("index", "i.index", "x")]
+  data2 <- data
+  names(data2) <- c("i.index", "index", "x")
+
+  data <- rbind(data, data2)
+
+  data <- data[!duplicated(data[,c("index", "i.index")]),]
+  data <- data[data$index >= data$i.index,]
+
+  sp_mat <- Matrix::sparseMatrix(i=as.numeric(data$index),
+                                 j=as.numeric(data$i.index),
+                                 x=data$x,
+                                 symmetric = TRUE)
+
+  colnames(sp_mat) <- peaks[order(peaks$index),]$Peak
+  row.names(sp_mat) <- peaks[order(peaks$index),]$Peak
+  return(sp_mat)
+}
+
 ### cicero is the folder for the dataset elements; it is the folder where to put the dtasets of mouse brain
 # 
 #  cicero.cds - > complete scATAC-seq matrix
@@ -111,34 +171,9 @@ library(GenomeInfoDb)
 # follows loading of the dataset
 
 
-cds_cicero <- readRDS("../Snare/cicero.cds")
+cds_ATAC <- readRDS("../TMPDATA/SNARE/CDA_ATAC")
 
-
-#plot_cells(cds_cicero)
-
-cds_cicero@colData@listData[["label"]] <- classification[order(match(rownames(classification), rownames(cds_cicero@colData))),]
-
-#classification$CellType
-cds_cicero@colData@listData[["ATAC"]] <- class$CLASS
-cell_type_cells <- row.names(subset(pData(cds_cicero), label !="Ambiguous" & label != "Unknown"))
-
-plot_cells(cds_cicero, color_cells_by = "ATAC", label_groups_by_cluster = FALSE ,cell_size = 1.2, group_label_size = 5, label_cell_groups = FALSE)
-
-
-plot_cells(cds_cicero[,cell_type_cells], color_cells_by = "label", label_groups_by_cluster = FALSE ,cell_size = 1.2, group_label_size = 5, label_cell_groups = FALSE)
-
-class_class <- cds_cicero@colData
-cds_cicero_first <- as.data.frame(cds_cicero@clusters@listData[["UMAP"]][["clusters"]])
-colnames(cds_cicero_first) <- "CLASS"
-
-ARI(class_class[cell_type_cells,]$label, cds_cicero_first[cell_type_cells,])
-AMI(class_class[cell_type_cells,]$label, cds_cicero_first[cell_type_cells,])
-
-ARI(class$CLASS, cds_cicero_first$CLASS)
-AMI(class$CLASS, cds_cicero_first$CLASS)
-
-
-mm10 <- read.table("../DATA/mm10.chrom.sizes.txt")
+mm10 <- read.table("../DATA/Genomes/mm10/mm10.chrom.sizes.txt")
 
 rownames(CDS_ATAC) <- gsub(":","_", rownames(CDS_ATAC))
 rownames(CDS_ATAC) <- gsub("-","_", rownames(CDS_ATAC))
@@ -149,7 +184,7 @@ CDS_ATAC@assays@data@listData[["counts"]]@Dimnames[[1]] <- rownames(fData(CDS_AT
 umap_coords <- reducedDims(CDS_ATAC)$UMAP
 cicero_cds <- make_cicero_cds(CDS_ATAC, reduced_coordinates = umap_coords)
 
-mm10 <- read.table("../DATA/mm10.chrom.sizes.txt")
+mm10 <- read.table("../DATA/Genomes/mm10/mm10.chrom.sizes.txt")
 mm10 <- mm10[1:21,]
 #mm10$V1 <- as.character.factor(hg38$V1)
 mm10 <- Seqinfo(mm10[1:21,]$V1, seqlengths= mm10[1:21,]$V2)
@@ -164,7 +199,7 @@ con_val <- conns[conns$coaccess > 0,]
 con_val <- con_val[!is.na(con_val$coaccess),]
 coaccess <- signif(mean(con_val$coaccess), digits = 2)
 
-chr2acc <- read.csv("../DATA/IWBBIO_2022/Genomes/mm10/refseq gene annotation/chr2acc.txt", sep = "\t")
+chr2acc <- read.csv("../DATA/Genomes/mm10/refseq gene annotation/chr2acc.txt", sep = "\t")
 
 
 
@@ -189,7 +224,7 @@ brain <- CreateSeuratObject(
 
 ##########
 
-gene_anno <- rtracklayer::readGFF("../DATA/IWBBIO_2022/Genomes/mm10/refseq gene annotation/GCF_000001635.26_GRCm38.p6_genomic.gtf.gz")
+gene_anno <- rtracklayer::readGFF("../DATA/Genomes/mm10/refseq gene annotation/GCF_000001635.26_GRCm38.p6_genomic.gtf.gz")
 gene_anno <- gene_anno[gene_anno$seqid %in% chr2acc$Accession.version,]
 gene_anno$seqid <- as.factor(as.character(gene_anno$seqid))
 levels(gene_anno$seqid) <- chr2acc$X.Chromosome
@@ -268,16 +303,18 @@ colnames(class2) <- "CLASS"
 cds_cicero@colData@listData[["label"]] <- metadata$label
 
 #plot_cells(cds_cicero, color_cells_by = "label", label_groups_by_cluster = FALSE)
-
+class <- as.data.frame(CDS_ATAC@clusters@listData[["UMAP"]][["clusters"]])
+colnames(class) <- "CLASS"
 #marker_test_res_rna <- top_markers(cds_cicero)
 #plot_cells(cds_cicero, genes = "Spi1")
 
-ARI(metadata$label, class2$CLASS)
-AMI(metadata$label, class2$CLASS)
+ARI(class$CLASS, class2$CLASS)
+AMI(class$CLASS, class2$CLASS)
 
 c_gam <- data.matrix(exprs(cds_cicero))
-write.table(c_gam, file='../TMPResults/cicero_gam.tsv', quote=FALSE, sep='\t', col.names = NA)
-write.table(class2, file='../TMPResults/classification/cicero_classification.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(c_gam, file='../TMPResults/GAM/SNARE/cicero.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(class2, file='../TMPResults/classifications/SNARE/cicero_classifications.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(class, file='../TMPResults/classifications/SNARE/atac_classifications.tsv', quote=FALSE, sep='\t', col.names = NA)
 
 
 
@@ -290,7 +327,7 @@ library(dplyr)
 library(BuenColors)
 library(Matrix)
 
-gene_anno <- rtracklayer::readGFF("../DATA/IWBBIO_2022/Genomes/mm10/refseq gene annotation/GCF_000001635.26_GRCm38.p6_genomic.gtf.gz")
+gene_anno <- rtracklayer::readGFF("../DATA/Genomes/mm10/refseq gene annotation/GCF_000001635.26_GRCm38.p6_genomic.gtf.gz")
 gene_anno$chromosome <- gene_anno$seqid
 #gene_anno$chromosome <- paste0("chr", gene_anno$seqid)
 gene_anno$gene <- gene_anno$gene_id
@@ -366,17 +403,17 @@ cds_gs@colData@listData[["ATAC"]] <- label$CLASS
 #plot_cells(cds_gs)
 
 gs_gam <- data.matrix(exprs(cds_gs))
-write.table(c_gam, file='../TMPResults/genescoring_gam.tsv', quote=FALSE, sep='\t', col.names = NA)
-write.table(class3, file='../TMPResults/classification/genescoring_classification.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(c_gam, file='../TMPResults/GAM/SNARE/genescoring.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(class3, file='../TMPResults/classifications/SNARE/genescoring_classifications.tsv', quote=FALSE, sep='\t', col.names = NA)
 
 
-ARI(label$CLASS, class3$CLASS)
-AMI(label$CLASS, class3$CLASS)
+ARI(class$CLASS, class3$CLASS)
+AMI(class$CLASS, class3$CLASS)
 
 
 
 ######### refseq #######
-labeled_peaks <- read.csv("../TMPResults/labeled_peaks/GSE126074_mouse_encodeCcreCombined_ucscLabel_classifiedPeaks.csv", sep = "\t")
+labeled_peaks <- read.csv("../TMPResults/labeled_peaks/SNARE/encodeCcreCombined_ucscLabel_classifiedPeaks.csv", sep = "\t")
 
 nmax <- max(stringr::str_count(labeled_peaks$encodeCcreCombined_ucscLabel, "\t")) + 1
 
@@ -413,9 +450,9 @@ non_prom_peaks <- peaks_multi_info[non_prom_list,]
 
 
 #### refseq #####
-refseq_gene_anno <-  rtracklayer::readGFF("../DATA/IWBBIO_2022/Genomes/mm10/refseq gene annotation/GCF_000001635.26_GRCm38.p6_genomic.gtf.gz")
+refseq_gene_anno <-  rtracklayer::readGFF("../DATA/Genomes/mm10/refseq gene annotation/GCF_000001635.26_GRCm38.p6_genomic.gtf.gz")
 
-chr2acc <- read.csv("../DATA/IWBBIO_2022/Genomes/mm10/refseq gene annotation/chr2acc.txt", sep = "\t")
+chr2acc <- read.csv("../DATA/Genomes/mm10/refseq gene annotation/chr2acc.txt", sep = "\t")
 
 
 refseq_peaks_prom <- peaks_multi_info[peaks_multi_info$is.prom == "TRUE",]
@@ -429,7 +466,7 @@ refseq_gene_anno$seqid <- paste0("chr", refseq_gene_anno$seqid)
 refseq_gene_anno <- refseq_gene_anno[refseq_gene_anno$type == "gene",]
 refseq_gene_anno <- refseq_gene_anno[refseq_gene_anno$gene_biotype %in% c("protein_coding","lncRNA"),]
 
-mm10 <- read.table("../DATA/IWBBIO_2022/Genomes/mm10/mm10.chrom.sizes.txt")
+mm10 <- read.table("../DATA/Genomes/mm10/mm10.chrom.sizes.txt")
 mm10 <- mm10[1:21,]
 #mm10$V1 <- as.character.factor(hg38$V1)
 mm10 <- Seqinfo(mm10[1:21,]$V1, seqlengths= mm10[1:21,]$V2)
@@ -718,8 +755,8 @@ AMI(class_class[cell_type_cells,]$label, final_GAM_first[cell_type_cells,])
 
 tsv <- data.matrix(exprs(final_GAM_cds))
 
-write.table(tsv, file='../TMPResults/gagam.tsv', quote=FALSE, sep='\t', col.names = NA)
-write.table(final_GAM_first, file='../TMPResults/gagam_classification.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(tsv, file='../TMPResults/GAM/SNARE/gagam.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(final_GAM_first, file='../TMPResults/classifications/SNARE/gagam_classifications.tsv', quote=FALSE, sep='\t', col.names = NA)
 
 
 ARI(class$CLASS, final_GAM_first$CLASS)
