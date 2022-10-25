@@ -182,8 +182,8 @@ if __name__ == '__main__':
 
     # extracting marker genes list
     # data from http://bio-bigdata.hrbmu.edu.cn/CellMarker
-    marker_genes_list = createBiomarkersList(marker_genes_path)#'genes_journal22/computing_RAGI/references/human_PBMC_pure_pliner/human_PBMC_marker_genes_pure_pliner.csv')
-    print('Creating marker genes list from: ' + marker_genes_path)#print('Considering marker genes from the list: ' + marker_genes_path + '/marker_genes.csv')
+    marker_genes_list = createBiomarkersList(marker_genes_path)
+    print('Creating marker genes list from: ' + marker_genes_path)
 
     # reading GAM file
     gene_scores = pd.read_csv(gene_activity_matrix_path, sep ='\t', index_col=0)
@@ -194,9 +194,9 @@ if __name__ == '__main__':
 
     # save RAGI results file
     if os.path.isdir(results_RAGI_path):
-        df_metrics.to_csv(results_RAGI_path + 'RAGI_table.csv') #+ os.path.splitext(gene_activity_matrix_path)[0] + '.csv')
+        df_metrics.to_csv(results_RAGI_path + 'RAGI_table.csv') 
     else:
         os.makedirs(results_RAGI_path)
-        df_metrics.to_csv(results_RAGI_path + 'RAGI_table.csv')#+ os.path.splitext(gene_activity_matrix_path)[0] + '.csv')
+        df_metrics.to_csv(results_RAGI_path + 'RAGI_table.csv')
 
     print('Finished RAGI computations for ' + gene_activity_matrix_path)
