@@ -62,7 +62,7 @@ def grabAnnotations(trackName, chrom, chromStart, chromEnd):
 # columnsNames is the list of columns from the specified tracks
 # to be considered for peak classification.
 # it saves the labeled Peaks to a .csv file
-def classifyPeaks(peaksDataFrame, trackName, columnsNames):
+def classifyPeaks(datasetName, peaksDataFrame, trackName, columnsNames):
 
     peakLabel = [''] * peaksDataFrame.shape[0]
 
@@ -77,8 +77,7 @@ def classifyPeaks(peaksDataFrame, trackName, columnsNames):
     peaksDataFrame[str(trackName) + '_' + str(columnsNames[0])] = pd.Series(peakLabel[:])
 
     # saving the classifiedPeaks_df to the output file
-    peaksDataFrame.to_csv(path_or_buf= '../human_pbmc_example/labeled_peaks/cCRE_labeled_peaks.tsv', sep='\t')
-    print('Labeled_peaks saved to human_pbmc_example/labeled_peaks/cCRE_labeled_peaks.tsv')
+    peaksDataFrame.to_csv(path_or_buf= '../TMPResults/labeled_peaks/' + datasetName + '/labeled_peaks/cCRE_labeled_peaks.tsv', sep='\t')
 
 
 if __name__ == '__main__':
@@ -86,11 +85,12 @@ if __name__ == '__main__':
     # sys.argv[1] -> Peaks filename
     # sys.argv[2] -> annotations track filename
 
-    peaks_path = '../DATA/IWBBIO_2022/Peaks/' + sys.argv[1]
-    annotation_track_path = '../DATA/IWBBIO_2022/Genomic_annotations/' + sys.argv[2]
+    peaks_path = sys.argv[1]
+    annotation_track_path = sys.argv[2]
+    dataset_name = os.path.basename(sys.argv[1])
 
     peaks = grabPeaks(peaks_path)
 
-    classifyPeaks(peaks, annotation_track_path, columnsNames=['ucscLabel'])
+    classifyPeaks(dataset_name, peaks, annotation_track_path, columnsNames=['ucscLabel'])
 
     print('The Peaks file at ', peaks_path, ' was labeled with genomic annotations from ', annotation_track_path)
