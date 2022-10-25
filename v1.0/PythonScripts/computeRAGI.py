@@ -157,7 +157,6 @@ if __name__ == '__main__':
     gene_activity_matrix_path = sys.argv[1]
     print ('Considering GAM file at: ' + gene_activity_matrix_path)
 
-
     # path to classifications folder
     clustering_outputs_folder = sys.argv[2]
     print ('Considering classifications at: ' + clustering_outputs_folder)
