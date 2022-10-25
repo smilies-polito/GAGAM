@@ -14,11 +14,15 @@ Shey are divided into:
 
 ## R scripts
 
-1. **10x_v1_PBMChuman_processing.R**: contains the sripts to calculate GAGAM, Cicero and GeneScoring, for all the human PBMC datasets.
+1. **10x_v1_PBMChuman_processing.R**: contains the sripts to calculate GAGAM, Cicero and GeneScoring, and process them, for the 10X V1.0.1 PBMC dataset, containing human PBMCs.
 
-2. **buenrostro_processing.R** : contains the sripts to calculate GAGAM, Cicero and GeneScoring, for all the Buenrostro2018 dataset, containing bone marrow cells.
+2. **10X_V2_PBMC_processing.R**: contains the sripts to calculate GAGAM, Cicero and GeneScoring, and process them, for the 10X V2.0.0 PBMC dataset, containing human PBMCs.
 
-3. **snare_new_gam_processing.R**: contains the scripts to calculate GAGAM, Cicero and GeneScoring, for all the datasets containing mouse brain cells.
+3. **buenrostro_processing.R** : contains the sripts to calculate GAGAM, Cicero and GeneScoring, and process them, for the Buenrostro2018 dataset, containing bone marrow cells.
+
+4. **10X_V1_Brain.R**: contains the sripts to calculate GAGAM, Cicero and GeneScoring, and process them, for the 10X V1.1.0 Brain dataset, containing mouse brain cells.
+
+3. **snare_new_gam_processing.R**: contains the scripts to calculate GAGAM, Cicero and GeneScoring,  and process them, for the SNARE dataset, containing mouse brain cells.
 
 ## Python scripts
 
