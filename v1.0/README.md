@@ -55,6 +55,7 @@ Organize the data following in propoided folder structure in the TMPDATA folder
   - GSE96769_PeakFile_20160207.csv.bed
   - GSE96769_scATACseq_counts.txt
   - hglft_genome_241cf_9a53c0.bed
+  - metadata.tsv
 - 10X_V1_Brain
   - atac_v1_adult_brain_fresh_5k_peaks.bed
   - atac_v1_adult_brain_fresh_5k_filtered_peak_bc_matrix.h5
