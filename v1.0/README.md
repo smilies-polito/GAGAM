@@ -245,49 +245,49 @@ Compute RAGI for each GAM over classification results, for each dataset.
 ```
 #### 10X V1.0.1 PBMC ######
 #GAGAM v1.0
-python3 computeRAGI.py '../TMPResults/GAM/10x_V1_PBMChuman/gagam.tsv' '../TMPResults/classifications/10x_V1_PBMChuman/' '../DATA/IWBBIO_2022/Housekeeping_genes/Housekeeping_genes_human.txt' '../DATA/IWBBIO_2022/Marker_genes/human_PBMC_gene_markers.csv'
+python3 computeRAGI.py '../TMPResults/GAM/10x_V1_PBMChuman/gagam.tsv' '../TMPResults/classifications/10x_V1_PBMChuman/' '../DATA/IWBBIO_2022/Housekeeping_genes/housekeeping_genes_human.txt' '../DATA/IWBBIO_2022/Marker_genes/human_PBMC_gene_markers.csv'
 #Cicero GAM
-python3 computeRAGI.py '../TMPResults/GAM/10x_V1_PBMChuman/cicero.tsv' '../TMPResults/classifications/10x_V1_PBMChuman/' '../DATA/IWBBIO_2022/Housekeeping_genes/Housekeeping_genes_human.txt' '../DATA/IWBBIO_2022/Marker_genes/human_PBMC_gene_markers.csv'
+python3 computeRAGI.py '../TMPResults/GAM/10x_V1_PBMChuman/cicero.tsv' '../TMPResults/classifications/10x_V1_PBMChuman/' '../DATA/IWBBIO_2022/Housekeeping_genes/housekeeping_genes_human.txt' '../DATA/IWBBIO_2022/Marker_genes/human_PBMC_gene_markers.csv'
 #GeneScoring GAM
-python3 computeRAGI.py '../TMPResults/GAM/10x_V1_PBMChuman/genescoring.tsv' '../TMPResults/classifications/10x_V1_PBMChuman/' '../DATA/IWBBIO_2022/Housekeeping_genes/Housekeeping_genes_human.txt' '../DATA/IWBBIO_2022/Marker_genes/human_PBMC_gene_markers.csv'
+python3 computeRAGI.py '../TMPResults/GAM/10x_V1_PBMChuman/genescoring.tsv' '../TMPResults/classifications/10x_V1_PBMChuman/' '../DATA/IWBBIO_2022/Housekeeping_genes/housekeeping_genes_human.txt' '../DATA/IWBBIO_2022/Marker_genes/human_PBMC_gene_markers.csv'
 ```
 
 
 ```
 #### 10X V2.0.0 PBMC ######
 #GAGAM v1.0
-python3 computeRAGI.py '../TMPResults/GAM/10X_V2_PBMC/gagam.tsv' '../TMPResults/classifications/10X_V2_PBMC/' '../DATA/IWBBIO_2022/Housekeeping_genes/Housekeeping_genes_human.txt' '../DATA/IWBBIO_2022/Marker_genes/human_PBMC_gene_markers.csv'
+python3 computeRAGI.py '../TMPResults/GAM/10X_V2_PBMC/gagam.tsv' '../TMPResults/classifications/10X_V2_PBMC/' '../DATA/IWBBIO_2022/Housekeeping_genes/housekeeping_genes_human.txt' '../DATA/IWBBIO_2022/Marker_genes/human_PBMC_gene_markers.csv'
 #Cicero GAM
-python3 computeRAGI.py '../TMPResults/GAM/10X_V2_PBMC/cicero.tsv' '../TMPResults/classifications/10X_V2_PBMC/' '../DATA/IWBBIO_2022/Housekeeping_genes/Housekeeping_genes_human.txt' '../DATA/IWBBIO_2022/Marker_genes/human_PBMC_gene_markers.csv'
+python3 computeRAGI.py '../TMPResults/GAM/10X_V2_PBMC/cicero.tsv' '../TMPResults/classifications/10X_V2_PBMC/' '../DATA/IWBBIO_2022/Housekeeping_genes/housekeeping_genes_human.txt' '../DATA/IWBBIO_2022/Marker_genes/human_PBMC_gene_markers.csv'
 #GeneScoring GAM
-python3 computeRAGI.py '../TMPResults/GAM/10X_V2_PBMC/genescoring.tsv' '../TMPResults/classifications/10X_V2_PBMC/' '../DATA/IWBBIO_2022/Housekeeping_genes/Housekeeping_genes_human.txt' '../DATA/IWBBIO_2022/Marker_genes/human_PBMC_gene_markers.csv'
+python3 computeRAGI.py '../TMPResults/GAM/10X_V2_PBMC/genescoring.tsv' '../TMPResults/classifications/10X_V2_PBMC/' '../DATA/IWBBIO_2022/housekeeping_genes/Housekeeping_genes_human.txt' '../DATA/IWBBIO_2022/Marker_genes/human_PBMC_gene_markers.csv'
 ```
 ```
 #### Buenrostro2018 ######
 #GAGAM v1.0
-python3 computeRAGI.py '../TMPResults/GAM/buenrostro/gagam.tsv' '../TMPResults/classifications/buenrostro/' '../DATA/IWBBIO_2022/Housekeeping_genes/Housekeeping_genes_human.txt' '../DATA/IWBBIO_2022/Marker_genes/human_PBMC_and_bone_marrow_gene_markers.csv'
+python3 computeRAGI.py '../TMPResults/GAM/buenrostro/gagam.tsv' '../TMPResults/classifications/buenrostro/' '../DATA/IWBBIO_2022/Housekeeping_genes/housekeeping_genes_human.txt' '../DATA/IWBBIO_2022/Marker_genes/human_PBMC_and_bone_marrow_gene_markers.csv'
 #Cicero GAM
-python3 computeRAGI.py '../TMPResults/GAM/buenrostro/cicero.tsv' '../TMPResults/classifications/buenrostro/' '../DATA/IWBBIO_2022/Housekeeping_genes/Housekeeping_genes_human.txt' '../DATA/IWBBIO_2022/Marker_genes/human_PBMC_and_bone_marrow_gene_markers.csv'
+python3 computeRAGI.py '../TMPResults/GAM/buenrostro/cicero.tsv' '../TMPResults/classifications/buenrostro/' '../DATA/IWBBIO_2022/Housekeeping_genes/housekeeping_genes_human.txt' '../DATA/IWBBIO_2022/Marker_genes/human_PBMC_and_bone_marrow_gene_markers.csv'
 #GeneScoring GAM
-python3 computeRAGI.py '../TMPResults/GAM/buenrostro/genescoring.tsv' '../TMPResults/classifications/buenrostro/' '../DATA/IWBBIO_2022/Housekeeping_genes/Housekeeping_genes_human.txt' '../DATA/IWBBIO_2022/Marker_genes/human_PBMC_and_bone_marrow_gene_markers.csv'
+python3 computeRAGI.py '../TMPResults/GAM/buenrostro/genescoring.tsv' '../TMPResults/classifications/buenrostro/' '../DATA/IWBBIO_2022/Housekeeping_genes/housekeeping_genes_human.txt' '../DATA/IWBBIO_2022/Marker_genes/human_PBMC_and_bone_marrow_gene_markers.csv'
 ```
 ```
 #### 10X V1.1.0 Brain ######
 #GAGAM v1.0
-python3 computeRAGI.py '../TMPResults/GAM/10X_V1_Brain/gagam.tsv' '../TMPResults/classifications/10X_V1_Brain/' '../DATA/IWBBIO_2022/Housekeeping_genes/Housekeeping_genes_mouse.txt' '../DATA/IWBBIO_2022/Marker_genes/mouse_brain_gene_markers.csv'
+python3 computeRAGI.py '../TMPResults/GAM/10X_V1_Brain/gagam.tsv' '../TMPResults/classifications/10X_V1_Brain/' '../DATA/IWBBIO_2022/Housekeeping_genes/housekeeping_genes_mouse.txt' '../DATA/IWBBIO_2022/Marker_genes/mouse_brain_gene_markers.csv'
 #Cicero GAM
-python3 computeRAGI.py '../TMPResults/GAM/10X_V1_Brain/cicero.tsv' '../TMPResults/classifications/10X_V1_Brain/' '../DATA/IWBBIO_2022/Housekeeping_genes/Housekeeping_genes_mouse.txt' '../DATA/IWBBIO_2022/Marker_genes/mouse_brain_gene_markers.csv'
+python3 computeRAGI.py '../TMPResults/GAM/10X_V1_Brain/cicero.tsv' '../TMPResults/classifications/10X_V1_Brain/' '../DATA/IWBBIO_2022/Housekeeping_genes/housekeeping_genes_mouse.txt' '../DATA/IWBBIO_2022/Marker_genes/mouse_brain_gene_markers.csv'
 #GeneScoring GAM
-python3 computeRAGI.py '../TMPResults/GAM/10X_V1_Brain/genescoring.tsv' '../TMPResults/classifications/10X_V1_Brain/' '../DATA/IWBBIO_2022/Housekeeping_genes/Housekeeping_genes_mouse.txt' '../DATA/IWBBIO_2022/Marker_genes/mouse_brain_gene_markers.csv'
+python3 computeRAGI.py '../TMPResults/GAM/10X_V1_Brain/genescoring.tsv' '../TMPResults/classifications/10X_V1_Brain/' '../DATA/IWBBIO_2022/housekeeping_genes/Housekeeping_genes_mouse.txt' '../DATA/IWBBIO_2022/Marker_genes/mouse_brain_gene_markers.csv'
 ```
 ```
 #### SNARE ######
 #GAGAM v1.0
-python3 computeRAGI.py '../TMPResults/GAM/SNARE/gagam.tsv' '../TMPResults/classifications/SNARE/' '../DATA/IWBBIO_2022/Housekeeping_genes/Housekeeping_genes_mouse.txt' '../DATA/IWBBIO_2022/Marker_genes/mouse_brain_gene_markers.csv'
+python3 computeRAGI.py '../TMPResults/GAM/SNARE/gagam.tsv' '../TMPResults/classifications/SNARE/' '../DATA/IWBBIO_2022/Housekeeping_genes/housekeeping_genes_mouse.txt' '../DATA/IWBBIO_2022/Marker_genes/mouse_brain_gene_markers.csv'
 #Cicero GAM
-python3 computeRAGI.py '../TMPResults/GAM/SNARE/cicero.tsv' '../TMPResults/classifications/SNARE/' '../DATA/IWBBIO_2022/Housekeeping_genes/Housekeeping_genes_mouse.txt' '../DATA/IWBBIO_2022/Marker_genes/mouse_brain_gene_markers.csv'
+python3 computeRAGI.py '../TMPResults/GAM/SNARE/cicero.tsv' '../TMPResults/classifications/SNARE/' '../DATA/IWBBIO_2022/Housekeeping_genes/housekeeping_genes_mouse.txt' '../DATA/IWBBIO_2022/Marker_genes/mouse_brain_gene_markers.csv'
 #GeneScoring GAM
-python3 computeRAGI.py '../TMPResults/GAM/SNARE/genescoring.tsv' '../TMPResults/classifications/SNARE/' '../DATA/IWBBIO_2022/Housekeeping_genes/Housekeeping_genes_mouse.txt' '../DATA/IWBBIO_2022/Marker_genes/mouse_brain_gene_markers.csv'
+python3 computeRAGI.py '../TMPResults/GAM/SNARE/genescoring.tsv' '../TMPResults/classifications/SNARE/' '../DATA/IWBBIO_2022/Housekeeping_genes/housekeeping_genes_mouse.txt' '../DATA/IWBBIO_2022/Marker_genes/mouse_brain_gene_markers.csv'
 ```
 
 ### Output
