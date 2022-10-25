@@ -170,9 +170,6 @@ if __name__ == '__main__':
     marker_genes_path = sys.argv[4]
     print ('Considering marker genes file at: ' + marker_genes_path)
 
-
-
-
     # path to RAGI computations results
     dataset_name = os.path.basename(sys.argv[1])
     results_RAGI_path = '../TMPResults/metrics/' + dataset_name + '/'
