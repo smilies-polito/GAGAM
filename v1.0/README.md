@@ -1,16 +1,18 @@
 # GAGAM v1.0
 
-
 GAGAM is Genomic Annotated Gene Activity Matrix, a model-driven approach to interpret scATAC-seq accessibility data, to obtain information about gene activity. It is a fundamental step to correlate scATAC-seq with ScRNA-seq. In other words, to link accessibility and expression of genes.
 
-v1.0
-Here there are all the scripts employed by GAGAM v1.0. They are divided in:
+GAGAM v1.0 was used in the experimental setup published in:
+Martini, L., Bardini, R., Savino, A., Di Carlo, S. (2022). GAGAM: A Genomic Annotation-Based Enrichment of scATAC-seq Data for Gene Activity Matrix. In: Rojas, I., Valenzuela, O., Rojas, F., Herrera, L.J., Ortuño, F. (eds) Bioinformatics and Biomedical Engineering. IWBBIO 2022. Lecture Notes in Computer Science(), vol 13347. Springer, Cham. https://doi.org/10.1007/978-3-031-07802-6_2
+
+This README file lists all available scripts and the full workflow to follow to reproduce the experiment reported in the paper. 
+
+Shey are divided into:
 
 1. R scripts
 1. Python scripts
 
 ## R scripts
-There are all the R scripts useful to compute GAGAM v1.0, and specifically, to obtain the results shown in conference paper "GAGAM: A Genomic Annotation-Based Enrichment of scATAC-seq Data for Gene Activity Matrix" from IWBBIO 2022.
 
 1. **10x_v1_PBMChuman_processing.R**: contains the sripts to calculate GAGAM, Cicero and GeneScoring, for all the human PBMC datasets.
 
@@ -37,7 +39,7 @@ For each dataset, download the data from the sources
 - 10X V1.1.0 Brain: https://www.10xgenomics.com/resources/datasets/fresh-cortex-from-adult-mouse-brain-p-50-1-standard-1-1-0
 - SNARE: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE126074
 
-Organize the data following in propoided folder structure in the DATA folder
+Organize the data following in propoided folder structure in the TMPDATA folder
 
 - 10x_V1_PBMChuman
   - barcodes.tsv
