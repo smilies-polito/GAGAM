@@ -81,19 +81,19 @@ The first step is to label the peaks with Genomic annotation tracks.
 Execute the script from the v1.0 folder with the syntax:
 ```
 ##10X V1.0.1 PBMC peak labeling
-python3 classifyPeaks.py '../DATA/10x_V1_PBMChuman/peaks.bed' '../DATA/Genomic_annotations/encodeCcreCombined_human.bb'
+python3 classifyPeaks.py '../TMPDATA/10x_V1_PBMChuman/peaks.bed' '../DATA/Genomic_annotations/encodeCcreCombined_human.bb'
 
 ##10X V2.0.0 PBMC peak labeling
-python3 classifyPeaks.py '../DATA/10X_V2_PBMC/peaks.bed' '../DATA/Genomic_annotations/encodeCcreCombined_human.bb'
+python3 classifyPeaks.py '../TMPDATA/10X_V2_PBMC/peaks.bed' '../DATA/Genomic_annotations/encodeCcreCombined_human.bb'
 
 ##Buenrostro2018 peak labeling
-python3 classifyPeaks.py '../DATA/buenrostro/GSE96769_PeakFile_20160207.csv.bed' '../DATA/Genomic_annotations/encodeCcreCombined_human.bb'
+python3 classifyPeaks.py '../TMPDATA/buenrostro/GSE96769_PeakFile_20160207.csv.bed' '../DATA/Genomic_annotations/encodeCcreCombined_human.bb'
 
 ##10X V1.1.0 Brain peak labeling
-python3 classifyPeaks.py '../DATA/10X_V1_Brain/atac_v1_adult_brain_fresh_5k_peaks.bed' '../DATA/Genomic_annotations/encodeCcreCombined_mouse.bb'
+python3 classifyPeaks.py '../TMPDATA/10X_V1_Brain/atac_v1_adult_brain_fresh_5k_peaks.bed' '../DATA/Genomic_annotations/encodeCcreCombined_mouse.bb'
 
 ##SNARE peak labeling
-python3 classifyPeaks.py '../DATA/SNARE/GSE126074_AdBrainCortex_SNAREseq_chromatin.peaks.tsv' '../DATA/Genomic_annotations/encodeCcreCombined_mouse.bb'
+python3 classifyPeaks.py '../TMPDATA/SNARE/GSE126074_AdBrainCortex_SNAREseq_chromatin.peaks.tsv' '../DATA/Genomic_annotations/encodeCcreCombined_mouse.bb'
 
 ```
 
@@ -114,28 +114,28 @@ The second phase consists in scATAC-seq data standard processing, construction o
 ### Input
 
 Path for 10X V1.0.1 PBMC inputs:
-  - ../TMPResults/leabeled_peaks/10x_V1_PBMChuman
-  - ../DATA/10x_V1_PBMChuman/
+  - ../TMPResults/leabeled_peaks/10x_V1_PBMChuman/encodeCcreCombined_hg38_ucscLabel_classifiedPeaks.csv
+  - ../TMPDATA/10x_V1_PBMChuman/
   - ../DATA/Genomes/hg38/GCF_000001405.39_GRCh38.p13_genomic.gtf
 
 Path for 10X V2.0.0 PBMC inputs:
   - ../TMPResults/labeled_peaks/10X_V2_PBMC/encodeCcreCombined_hg38_ucscLabel_classifiedPeaks.csv
-  - ../DATA/10X_V2_PBMC/
+  - ../TMPDATA/10X_V2_PBMC/
   - ../DATA/Genomes/hg38/GCF_000001405.39_GRCh38.p13_genomic.gtf
 
 Path for Buenrostro2018 inputs:
   - ../TMPResults/labeled_peaks/buenrostro/encodeCcreCombined_hg38_ucscLabel_classifiedPeaks.csv
-  - ../DATA/buenrostro/
+  - ../TMPDATA/buenrostro/
   - ../DATA/Genomes/hg38/GCF_000001405.39_GRCh38.p13_genomic.gtf
 
 Path for 10X V1.1.0 Brain inputs:
   - ../TMPResults/labeled_peaks/10X_V1_Brain/encodeCcreCombined_ucscLabel_classifiedPeaks.csv
-  - ../DATA/10X_V1_Brain/
+  - ../TMPDATA/10X_V1_Brain/
   - ../DATA/Genomes/mm10/GCF_000001635.26_GRCm38.p6_genomic.gtf
 
 Path for SNARE inputs:
   - ../TMPResults/labeled_peaks/SNARE/encodeCcreCombined_ucscLabel_classifiedPeaks.csv
-  - ../DATA/SNARE/
+  - ../TMPDATA/SNARE/
   - ../DATA/Genomes/mm10/GCF_000001635.26_GRCm38.p6_genomic.gtf
 
 ### Script

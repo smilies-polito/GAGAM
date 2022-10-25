@@ -112,9 +112,9 @@ library(GenomeInfoDb)
 
 
 #binarized 
-prova_10x <-Read10X_h5("../matrix.h5")
+prova_10x <-Read10X_h5("../DATA/10X_V1_Brain/atac_v1_adult_brain_fresh_5k_filtered_peak_bc_matrix.h5")
 prova_10x@x[prova_10x@x > 0] <- 1
-peak.info <- read.table("../peaks.bed")
+peak.info <- read.table("../DATA/10X_V1_Brain/atac_v1_adult_brain_fresh_5k_peaks.bed")
 peak.info$site_name <- paste(peak.info$V1, peak.info$V2, peak.info$V3, sep = "_")
 row.names(peak.info) <- peak.info$site_name
 row.names(prova_10x) <- row.names(peak.info)
@@ -130,16 +130,13 @@ input_cds <- cluster_cells(input_cds)
 
 #plot_cells(input_cds)
 
-mm10 <- read.table("../DATA/IWBBIO_2022/Genomes/mm10.chrom.sizes.txt")
+mm10 <- read.table("../DATA/Genomes/mm10.chrom.sizes.txt")
 
 umap_coords <- reducedDims(input_cds)$UMAP
 cicero_cds <- make_cicero_cds(input_cds, reduced_coordinates = umap_coords)
 
 
-gene_ann_reg <- rtracklayer::readGFF("../DATA/IWBBIO_2022/Genomes/mus_musculus.GRCm38.Regulatory_Build.regulatory_features.20180516.gff.gz")
-gene_ann_reg$seqid <- paste0("chr", gene_ann_reg$seqid)
-
-gene_anno <-  rtracklayer::readGFF("../DATA/IWBBIO_2022/Genomes/gencode.vM17.annotation.gtf.gz")
+gene_anno <-  rtracklayer::readGFF("../DATA/Genomes/mm10/gencode.vM17.annotation.gtf.gz")
 gene_anno$chromosome <- gene_anno$seqid
 #gene_anno$chromosome <- paste0("chr", gene_anno$seqid)
 gene_anno$gene <- gene_anno$gene_id
@@ -150,8 +147,8 @@ gene_anno$symbol <- gene_anno$gene_name
 genome_ref = human.hg19.genome
 
 conns <- run_cicero(cicero_cds, mm10, sample_num = 100) 
-saveRDS(conns, "../TMPResults/conns1")
-conns <- readRDS("../TMPResults/conns1")
+saveRDS(conns, "../TMPResults/conns_v1_brain")
+conns <- readRDS("../TMPResults/conns_v1_brain")
 
 con_val <- conns[conns$coaccess > 0,]
 con_val <- con_val[!is.na(con_val$coaccess),]
@@ -228,6 +225,10 @@ marker_test_res_rna <- top_markers(cds_cicero)
 
 ARI(class$CLASS, class2$CLASS)
 AMI(class$CLASS, class2$CLASS)
+
+c_gam <- data.matrix(exprs(cds_cicero))
+write.table(c_gam, file='../TMPResults/GAM/10X_V1_Brain/cicero.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(class2, file='../TMPResults/classifications/10X_V1_Brain/cicero_classifications.tsv', quote=FALSE, sep='\t', col.names = NA)
 
 
 ###############gene scoring###################
@@ -307,6 +308,10 @@ cds_gs@colData@listData[["ATAC"]] <- class$CLASS
 ARI(class$CLASS, class3$CLASS)
 AMI(class$CLASS, class3$CLASS)
 
+gs_gam <- data.matrix(exprs(cds_gs))
+write.table(c_gam, file='../TMPResults/GAM/10X_V1_Brain/genescoring.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(class3, file='../TMPResults/classifications/10X_V1_Brain/genescoring_classifications.tsv', quote=FALSE, sep='\t', col.names = NA)
+
 
 
 
@@ -343,11 +348,6 @@ levels(annotations@seqnames@values) <- paste0("chr", annotations@seqnames@values
 genome(annotations) <- "mm10"
 annotations@seqinfo@seqnames <- paste0("chr", annotations@seqinfo@seqnames)
 
-Xkr4 <- annotations[annotations$gene_name == "Xkr4",]
-Xkr41 <- as.data.frame(Xkr4@elementMetadata@listData)
-Xkr42 <- as.data.frame(Xkr4@ranges)
-Xkr4 <- cbind(Xkr41, Xkr42)
-Xkr4ge <- gene_anno[gene_anno$symbol == "Xkr4",]
 
 Annotation(brain) <- annotations
 
@@ -398,91 +398,13 @@ DefaultAssay(brain) <- 'RNA'
 
 
 
-brain <- FindVariableFeatures(brain, nfeatures = 3000)
-brain <- NormalizeData(
-  object = brain,
-  assay = 'RNA',
-  normalization.method = 'LogNormalize',
-  scale.factor = median(brain$nCount_RNA)
-)
-brain <- ScaleData(brain)
-brain <- RunPCA(brain, npcs = 30)
-brain <- RunUMAP(brain, dims = 1:30, reduction.name = "umap.activity")
-brain <- FindNeighbors(brain, dims = 1:30)
-brain <- FindClusters(brain, resolution = 0.5, algorithm = 3)
-
-
-#FeaturePlot(
-  object = brain,
-  features = c('Sst','Pvalb',"Gad2","Neurod6","Rorb","Syt6"),
-  pt.size = 0.1,
-  max.cutoff = 'q95',
-  ncol = 3
-)
-DefaultAssay(brain) <- 'peaks'
-#DimPlot(brain, group.by = "peaks_snn_res.0.5")
-#FeaturePlot(brain, features = "Apoe")
-
-
-ARI(brain@meta.data[["peaks_snn_res.0.5"]], brain@meta.data[["RNA_snn_res.0.5"]])
-AMI(brain@meta.data[["peaks_snn_res.0.5"]], brain@meta.data[["RNA_snn_res.0.5"]])
-
-
-
-
-
-
-
-
-
-
-
-
 
 ############################################
-#fun
-gene_ann_reg <- rtracklayer::readGFF("../DATA/IWBBIO_2022/Genomes/mus_musculus.GRCm38.Regulatory_Build.regulatory_features.20180516.gff.gz")
-gene_ann_reg$seqid <- paste0("chr", gene_ann_reg$seqid)
-gene_ann_reg <- gene_ann_reg[gene_ann_reg$seqid %in% mm10.1$V1,]
 
-mm10.1 <- mm10[1:21,]
-mm10.1 <- mm10
-#mm10.1$V1[22:66] <- paste0(mm10.1$V1[22:66], ".1")
-#mm10.1$V1[64] <- "chrMT"
-#mm_copia <- mm10.1
-#mm10.1[22,] <- mm10[64,]
-mm10.1 <- Seqinfo(mm10.1$V1, seqlengths= mm10.1$V2)
-
-mm10.1@genome[] <- "mm10"
-listData <- gene_ann_reg$feature_type
-
-peaks <- rownames(brain)
-clos <- ClosestFeature(brain, peaks, annotation = ann)
-
-
-closp <- clos[clos$distance > 0 & clos$distance < 40,]$type[]
-closp[closp$distance > 0 & closp$distance < 40,]$type[] <- "prox"
-closp[closp$distance >= 40,]$type[] <- "extra"
-
-closp2 <- clos[clos$distance != 0,]
-out_peaks <- as.character(closp2$query_region)
-
-
-pie <- ggplot(clos, aes(x = factor(1), fill = factor(type))) + geom_bar(width=1)
-pie + coord_polar(theta = "y") + theme(axis.title.x = element_blank(), axis.title.y = element_blank())
-
-
-pie <- ggplot(closp2, aes(x = factor(1), fill = factor(type))) + geom_bar(width=1)
-pie + coord_polar(theta = "y") + theme(axis.title.x = element_blank(), axis.title.y = element_blank())
-
-
-labeled_peaks <- read.delim("../TMPResults/labeled_peaks/classifiedPeaks.csv")
-labeled_peaks_multi <- read.csv("../TMPResults/labeled_peaks/classifiedPeaks_multiCols.csv", sep = "\t")
-l_prova <- read.csv("../TMPResults/labeled_peaks/classifiedPeaks.csv", sep = c(","), header = FALSE)
 
 ########### first GAM with only promoter called only "gene" from gene annotation #######
 
-labeled_peaks <- read.csv("../TMPResults/labeled_peaks/10x_v1_1.1.0_mousebrainP50/classifiedPeaks.csv", sep = "\t")
+labeled_peaks <- read.csv("../TMPResults/labeled_peaks/10X_V1_Brain/encodeCcreCombined_ucscLabel_classifiedPeaks.csv", sep = "\t")
 
 nmax <- max(stringr::str_count(labeled_peaks$ucsclabel, ",")) + 1
 
@@ -509,107 +431,11 @@ peaks_multi_info_tsscicero[peaks_multi_info_tsscicero$gene == "Sulf1",]
 
 sum(peaks_multi_info_tsscicero$X0 == "")
 
-##### check for promoters peaks######
-ppp <- peaks_multi_info
-ppp <- as.data.frame(peaks_multi_info)
-ppp[ppp == "prom"] <- TRUE
-
-peaks_multi_info$is.prom <- apply(ppp, 1, any)
-peaks_multi_info[is.na(peaks_multi_info$is.prom),]$is.prom <- FALSE
-
-
-
-
-
-#saveRDS(peaks_multi_info, "C:/Users/loren/IWBBIO/conns/peaks_multi_info")
-#peaks_multi_info[row.names(peaks_multi_info)]$is.prom <- is.element("prom", unlist(peaks_multi_info[row.names(peaks_multi_info),]))
-
-peaks_prom <- peaks_multi_info[peaks_multi_info$is.prom == "TRUE",]
-different_prom <- peaks_prom[is.na(peaks_prom$gene),]
-
-prom_list <- rownames(peaks_prom)
-non_prom_list <- rownames(peaks_multi_info)
-non_prom_list <- setdiff(non_prom_list, prom_list)
-
-non_prom_peaks <- peaks_multi_info[non_prom_list,]
-
-
-#gene_closest_to_prom <- ClosestFeature(brain, gsub("_", "-", prom_list))
-#gane_closest_to_non_prom <- ClosestFeature(brain, gsub("_", "-", non_prom_list))
-
-sub <- gene_anno[gene_anno$type == "gene",]
-sub <- sub[sub$seqid != "chrM",]
-gene_anno_GRanges <- makeGRangesFromDataFrame(sub, seqinfo = mm10.1, seqnames.field = "seqid", keep.extra.columns = TRUE)
-Annotation(brain) <- gene_anno_GRanges
-
-#gene_closest_to_prom[duplicated(gene_closest_to_prom$symbol),]
-near_gene_closest_to_prom <- gene_closest_to_prom[gene_closest_to_prom$distance <= 1000,]
-near_prom_list <- gsub("-","_",near_gene_closest_to_prom$query_region)
-
-peaks_prom <-  peaks_prom[near_prom_list,]
-peaks_prom$gene_anno <- near_gene_closest_to_prom$symbol
-  
-
-promoter_peak_table <- peaks_prom
-promoter_peak_table$site_name <- rownames(promoter_peak_table)
-promoter_gene_mat <-
-  Matrix::sparseMatrix(j=as.numeric(factor(promoter_peak_table$site_name)),
-                       i=as.numeric(factor(promoter_peak_table$gene_anno)),
-                       x=1)
-
-accessibility_mat <- exprs(input_cds)
-promoter_activity_scores <- accessibility_mat[near_prom_list,, drop=FALSE]
-
-colnames(promoter_gene_mat) = levels(factor(promoter_peak_table$site_name))
-row.names(promoter_gene_mat) = levels(factor(promoter_peak_table$gene_anno))
-promoter_gene_mat <- promoter_gene_mat[,row.names(promoter_activity_scores)]
-
-#Znrf1 <- genes_active_promoters[genes_active_promoters$gene == "Znrf1",]
-
-first_gene_matrix <- promoter_gene_mat %*% promoter_activity_scores
-
-
-
-
-first_cell <- colnames(first_gene_matrix)
-#cicero_cell <- read.table(cicero_cell)
-lenght1 <- length(first_cell)
-
-first_gene <- row.names(first_gene_matrix)
-lenght2 <- length(first_gene)
-c_c <- matrix(first_cell, nrow = lenght1, dimnames = list(first_cell,c("Cells")))
-c_g<- matrix(first_gene, nrow = lenght2, dimnames = list(first_gene,c("gene_short_name")))
-
-
-## processing GAM with Cicero
-cds_first <-  suppressWarnings(new_cell_data_set(first_gene_matrix, cell_metadata = c_c, gene_metadata = c_g))
-
-cds_first <- detect_genes(cds_first)
-cds_first <- estimate_size_factors(cds_first)
-cds_first <- preprocess_cds(cds_first, method = "PCA")
-
-cds_first <- reduce_dimension(cds_first, reduction_method = 'UMAP', 
-                               preprocess_method = "PCA")
-cds_first = cluster_cells(cds_first, resolution=0.95e-3)
-
-#plot_cells(cds_first)
-
-cds_first@colData@listData[["ATAC"]] <- class$CLASS
-
-#plot_cells(cds_first, color_cells_by = "ATAC", label_groups_by_cluster = FALSE)
-
-class_first <- as.data.frame(cds_first@clusters@listData[["UMAP"]][["clusters"]])
-colnames(class_first) <- "CLASS"
-
-ARI(class$CLASS, class_first$CLASS)
-AMI(class$CLASS, class_first$CLASS)
-
-
 
 ###### using refseq gene annotation ##########
 
-refseq_gene_anno <-  rtracklayer::readGFF("../DATA/IWBBIO_2022/Genomes/refseq/GCF_000001635.26_GRCm38.p6_genomic.gtf.gz")
-chr2acc <- read.csv("../DATA/IWBBIO_2022/Genomes/refseq/chr2acc.txt", sep = "\t")
+refseq_gene_anno <-  rtracklayer::readGFF("../DATA/Genomes/mm10/refseq/GCF_000001635.26_GRCm38.p6_genomic.gtf.gz")
+chr2acc <- read.csv("../DATA/Genomes/mm10/refseq/chr2acc.txt", sep = "\t")
 
 refseq_peaks_prom <- peaks_multi_info[peaks_multi_info$is.prom == "TRUE",]
 refseq_prom_list <- rownames(refseq_peaks_prom)
@@ -691,86 +517,6 @@ confusion_sub <- reduce_dimension(confusion_sub, reduction_method = 'UMAP',
                                   preprocess_method = "PCA")
 confusion_sub <- cluster_cells(confusion_sub, resolution=0.95e-3)
 #plot_cells(confusion_sub, color_cells_by = "ATAC")
-
-############### using only transcript  ##########
-
-transcript_peaks_prom <- peaks_multi_info[peaks_multi_info$is.prom == "TRUE",]
-transcript_prom_list <- rownames(transcript_peaks_prom)
-
-
-transcript <- gene_anno[gene_anno$type == "transcript",]
-transcript <- transcript[transcript$seqid != "chrM",]
-transcript <- transcript[transcript$gene_type %in% c("protein_coding","lincRNA"),]
-transcript <- transcript[transcript$transcript_type != "nonsense_mediated_decay",]
-#refseq_gene_anno <- refseq_gene_anno[refseq_gene_anno$seqid %in% chr2acc$Accession.version,]
-#refseq_gene_anno$seqid <- as.factor(as.character(refseq_gene_anno$seqid)) 
-#levels(refseq_gene_anno$seqid) <- chr2acc$X.Chromosome
-#refseq_gene_anno$seqid <- paste0("chr", refseq_gene_anno$seqid)
-#refseq_gene_anno <- refseq_gene_anno[refseq_gene_anno$type == "gene",]
-
-transcript_GRanges <- makeGRangesFromDataFrame(transcript, seqinfo = mm10.1, seqnames.field = "seqid", keep.extra.columns = TRUE)
-
-transcript_gene_closest_to_prom <- ClosestFeature(brain, gsub("_", "-", refseq_prom_list), annotation = transcript_GRanges)
-transcript_gene_closest_to_prom <- transcript_gene_closest_to_prom[transcript_gene_closest_to_prom$distance <= 1000,]
-
-transcript_near_prom_list <- gsub("-","_",transcript_gene_closest_to_prom$query_region)
-
-
-transcript_peaks_prom <-  transcript_peaks_prom[transcript_near_prom_list,]
-transcript_peaks_prom$gene_anno <- transcript_gene_closest_to_prom$symbol
-
-
-transcript_promoter_peak_table <- transcript_peaks_prom
-transcript_promoter_peak_table$site_name <- rownames(transcript_promoter_peak_table)
-transcript_promoter_gene_mat <-
-  Matrix::sparseMatrix(j=as.numeric(factor(transcript_promoter_peak_table$site_name)),
-                       i=as.numeric(factor(transcript_promoter_peak_table$gene_anno)),
-                       x=1)
-
-transcript_accessibility_mat <- exprs(input_cds)
-transcript_promoter_activity_scores <- transcript_accessibility_mat[transcript_near_prom_list,, drop=FALSE]
-
-colnames(transcript_promoter_gene_mat) = levels(factor(transcript_promoter_peak_table$site_name))
-row.names(transcript_promoter_gene_mat) = levels(factor(transcript_promoter_peak_table$gene_anno))
-transcript_promoter_gene_mat <- transcript_promoter_gene_mat[,row.names(transcript_promoter_activity_scores)]
-
-#Znrf1 <- genes_active_promoters[genes_active_promoters$gene == "Znrf1",]
-
-transcript_first_gene_matrix <- transcript_promoter_gene_mat %*% transcript_promoter_activity_scores
-
-
-first_cell <- colnames(transcript_first_gene_matrix)
-#cicero_cell <- read.table(cicero_cell)
-lenght1 <- length(first_cell)
-
-first_gene <- row.names(transcript_first_gene_matrix)
-lenght2 <- length(first_gene)
-c_c <- matrix(first_cell, nrow = lenght1, dimnames = list(first_cell,c("Cells")))
-c_g<- matrix(first_gene, nrow = lenght2, dimnames = list(first_gene,c("gene_short_name")))
-
-
-## processing GAM with Cicero
-transcript_cds_first <-  suppressWarnings(new_cell_data_set(transcript_first_gene_matrix, cell_metadata = c_c, gene_metadata = c_g))
-
-transcript_cds_first <- detect_genes(transcript_cds_first)
-transcript_cds_first <- estimate_size_factors(transcript_cds_first)
-transcript_cds_first <- preprocess_cds(transcript_cds_first, method = "PCA")
-
-transcript_cds_first <- reduce_dimension(transcript_cds_first, reduction_method = 'UMAP', 
-                                     preprocess_method = "PCA")
-transcript_cds_first = cluster_cells(transcript_cds_first, resolution=0.95e-3)
-
-#plot_cells(transcript_cds_first)
-
-transcript_cds_first@colData@listData[["ATAC"]] <- class$CLASS
-
-#plot_cells(transcript_cds_first, color_cells_by = "ATAC", label_groups_by_cluster = FALSE)
-
-transcript_class_first <- as.data.frame(transcript_cds_first@clusters@listData[["UMAP"]][["clusters"]])
-colnames(transcript_class_first) <- "CLASS"
-
-ARI(class$CLASS, transcript_class_first$CLASS)
-AMI(class$CLASS, transcript_class_first$CLASS)
 
 
 ########### adding extra intergenetic peaks to GAM ############
@@ -917,80 +663,6 @@ GA_only_prom <- top_markers(only_prom_cds_first)
 
 
 
-################# normalization attempt ############
-#cicero normalization 
-unnorm_first <- first_gene_matrix[!Matrix::rowSums(first_gene_matrix) == 0, 
-                       !Matrix::colSums(first_gene_matrix) == 0]
-num_genes <- pData(input_cds)$num_genes_expressed
-names(num_genes) <- row.names(pData(input_cds))
-
-norm_first_gene_matrix <- normalize_gene_activities(unnorm_first, num_genes)
-
-norm_first_cell <- colnames(norm_first_gene_matrix)
-  #cicero_cell <- read.table(cicero_cell)
-lenght1 <- length(norm_first_cell)
-
-norm_first_gene <- row.names(norm_first_gene_matrix)
-lenght2 <- length(norm_first_gene)
-c_c <- matrix(norm_first_cell, nrow = lenght1, dimnames = list(norm_first_cell,c("Cells")))
-c_g<- matrix(norm_first_gene, nrow = lenght2, dimnames = list(norm_first_gene,c("gene_short_name")))
-
-
-## processing GAM with Cicero
-norm_cds_first <-  suppressWarnings(new_cell_data_set(norm_first_gene_matrix, cell_metadata = c_c, gene_metadata = c_g))
-
-norm_cds_first <- detect_genes(norm_cds_first)
-norm_cds_first <- estimate_size_factors(norm_cds_first)
-norm_cds_first <- preprocess_cds(norm_cds_first, method = "PCA")
-
-norm_cds_first <- reduce_dimension(norm_cds_first, reduction_method = 'UMAP', 
-                              preprocess_method = "PCA")
-norm_cds_first = cluster_cells(norm_cds_first, resolution=0.95e-3)
-
-#plot_cells(norm_cds_first)
-
-norm_cds_first@colData@listData[["ATAC"]] <- class$CLASS
-
-#plot_cells(norm_cds_first, color_cells_by = "ATAC", label_groups_by_cluster = FALSE)
-
-class_first_norm <- as.data.frame(norm_cds_first@clusters@listData[["UMAP"]][["clusters"]])
-colnames(class_first_norm) <- "CLASS"
-
-ARI(class$CLASS, class_first_norm$CLASS)
-AMI(class$CLASS, class_first_norm$CLASS)
-
-################# refseqFuncElements ############
-
-library(dplyr)
-library(tidyr)
-library(stringr)
-
-refseq_funcelement <- read.csv("../DATA/IWBBIO_2022/Genomes/refseq/refseq FuncElement/refSeqFuncElems_soTerm_classifiedPeaks.csv", sep = "\t")
-refseq_funcelement_names <- read.csv("../DATA/IWBBIO_2022/Genomes/refseq/refseq FuncElement/refSeqFuncElems_name_classifiedPeaks.csv", sep = "\t")
-
-nmax <- max(stringr::str_count(refseq_funcelement$refSeqFuncElems_soTerm, "\t")) + 1
-
-refseq_funcelement <- separate(refseq_funcelement, col = refSeqFuncElems_soTerm, sep = "\t", into = paste0("FuncElem", seq_len(nmax)))
-
-
-nmax <- max(stringr::str_count(refseq_funcelement_names$refSeqFuncElems_soTerm, "\t")) + 1
-
-refseq_funcelement_names <- separate(refseq_funcelement_names, col = refSeqFuncElems_soTerm, sep = "\t", into = paste0("FuncElem", seq_len(nmax)))
-
-#refseq_funcelement[refseq_funcelement$FuncElem1 != "",]
-
-ppp <- as.data.frame(refseq_funcelement)
-ppp[ppp == "enhancer"] <- TRUE
-
-peaks_multi_info$is.enh <- FALSE
-peaks_multi_info$is.enh <- apply(ppp, 1, any)
-
-peaks_multi_info[is.na(peaks_multi_info$is.enh),]$is.enh <- FALSE
-enh_peaks_list <- rownames(peaks_multi_info[peaks_multi_info$is.enh == TRUE,])
-
-length(setdiff(enh_peaks_list, prom_list))
-
-ppp <- as.data.frame(peaks_multi_info)
 
 ############## adding connection ########### 
 
@@ -1008,13 +680,65 @@ promoter_peak_table$gene_anno <- as.character(promoter_peak_table$gene_anno)
 
 colnames(promoter_peak_table) <- c("peak", "gene")
   
+
 split_peak_names <- function(inp) {
-  out <- stringr::str_split_fixed(stringi::stri_reverse(inp), 
+  out <- stringr::str_split_fixed(stringi::stri_reverse(inp),
                                   ":|-|_", 3)
   out[,1] <- stringi::stri_reverse(out[,1])
   out[,2] <- stringi::stri_reverse(out[,2])
   out[,3] <- stringi::stri_reverse(out[,3])
   out[,c(3,2,1), drop=FALSE]
+}
+make_sparse_matrix <- function(data,
+                               i.name = "Peak1",
+                               j.name = "Peak2",
+                               x.name = "value") {
+  if(!i.name %in% names(data) |
+     !j.name %in% names(data) |
+     !x.name %in% names(data)) {
+    stop('i.name, j.name, and x.name must be columns in data')
+  }
+
+  data$i <- as.character(data[,i.name])
+  data$j <- as.character(data[,j.name])
+  data$x <- data[,x.name]
+
+  if(!class(data$x) %in%  c("numeric", "integer"))
+    stop('x.name column must be numeric')
+
+  peaks <- data.frame(Peak = unique(c(data$i, data$j)),
+                      index = seq_len(length(unique(c(data$i, data$j)))))
+
+  data <- data[,c("i", "j", "x")]
+
+  data <- rbind(data, data.frame(i=peaks$Peak, j = peaks$Peak, x = 0))
+  data <- data[!duplicated(data[,c("i", "j", "x")]),]
+  data <- data.table::as.data.table(data)
+  peaks <- data.table::as.data.table(peaks)
+  data.table::setkey(data, "i")
+  data.table::setkey(peaks, "Peak")
+  data <- data[peaks]
+  data.table::setkey(data, "j")
+  data <- data[peaks]
+  data <- as.data.frame(data)
+
+  data <- data[,c("index", "i.index", "x")]
+  data2 <- data
+  names(data2) <- c("i.index", "index", "x")
+
+  data <- rbind(data, data2)
+
+  data <- data[!duplicated(data[,c("index", "i.index")]),]
+  data <- data[data$index >= data$i.index,]
+
+  sp_mat <- Matrix::sparseMatrix(i=as.numeric(data$index),
+                                 j=as.numeric(data$i.index),
+                                 x=data$x,
+                                 symmetric = TRUE)
+
+  colnames(sp_mat) <- peaks[order(peaks$index),]$Peak
+  row.names(sp_mat) <- peaks[order(peaks$index),]$Peak
+  return(sp_mat)
 }
 
 if ("dist" %in% colnames(conns) == FALSE) {
@@ -1039,148 +763,6 @@ site_weights <- as(Matrix::Diagonal(x=as.numeric(site_weights)),
 row.names(site_weights) <- site_names
 colnames(site_weights) <- site_names
 
-
-{
-nonneg_cons <-
-  conns[(conns$Peak1 %in%
-                      promoter_peak_table$peak |
-           conns$Peak2 %in%
-                      promoter_peak_table$peak) &
-          conns$coaccess >= coaccess &
-          conns$dist < dist_thresh,]
-nonneg_cons <- nonneg_cons[,c("Peak1", "Peak2", "coaccess")]
-nonneg_cons <- nonneg_cons[!duplicated(nonneg_cons),]
-
-nonneg_cons$Peak1 <- as.character(nonneg_cons$Peak1)
-nonneg_cons$Peak2 <- as.character(nonneg_cons$Peak2)
-
-nonneg_cons <- rbind(nonneg_cons,
-                     data.frame(Peak1=unique(promoter_peak_table$peak),
-                                Peak2=unique(promoter_peak_table$peak),
-                                coaccess=0))
-}
-
-prom_enh <- conns[(conns$Peak1 %in%
-         refseq_near_prom_list &
-         conns$Peak2 %in%
-         enh_peaks_list),]
-
-prom_enh <- conns[(conns$Peak1 %in%
-                     promoter_peak_table$peak &
-                     conns$Peak2 %in%
-                     enh_peaks_list) | (conns$Peak2 %in%
-                                          promoter_peak_table$peak &
-                                          conns$Peak1 %in%
-                                          enh_peaks_list),]
-
-prom_enh <- prom_enh[!duplicated(prom_enh),]
-prom_enh <- prom_enh[prom_enh$coaccess >= 0.12 & prom_enh$dist <= dist_thresh,]
-
-prom_enh <- prom_enh[,c("Peak1", "Peak2", "coaccess")]
-prom_enh <- prom_enh[!duplicated(prom_enh),]
-
-prom_enh$Peak1 <- as.character(prom_enh$Peak1)
-prom_enh$Peak2 <- as.character(prom_enh$Peak2)
-
-
-prom_enh <- rbind(prom_enh,
-                     data.frame(Peak1=unique(promoter_peak_table$peak),
-                                Peak2=unique(promoter_peak_table$peak),
-                                coaccess=0))
-
-
-prom_enh_connectivity <- make_sparse_matrix(prom_enh, x.name = "coaccess")
-#distal_connectivity_matrix <- make_sparse_matrix(nonneg_cons, x.name="coaccess")
-
-
-
-
-promoter_conn_matrix <-
-  prom_enh_connectivity[unique(promoter_peak_table$peak),]
-
-# Get list of promoter and distal sites in accessibility mat
-promoter_safe_sites <- intersect(rownames(promoter_conn_matrix),
-                                 row.names(accessibility_mat))
-distal_safe_sites <- intersect(colnames(promoter_conn_matrix),
-                               row.names(accessibility_mat))
-distal_safe_sites <- setdiff(distal_safe_sites, promoter_safe_sites)
-
-# Get accessibility info for promoters
-promoter_access_mat_in_cicero_map <- accessibility_mat[promoter_safe_sites,, drop=FALSE]
-
-# Get accessibility for distal sites
-distal_activity_scores <- accessibility_mat[distal_safe_sites,, drop=FALSE]
-
-# Scale connectivity matrix by site_weights
-scaled_site_weights <- site_weights[distal_safe_sites,distal_safe_sites, drop=FALSE]
-total_linked_site_weights <- promoter_conn_matrix[,distal_safe_sites, drop=FALSE] %*%
-  scaled_site_weights
-total_linked_site_weights <- 1/Matrix::rowSums(total_linked_site_weights,
-                                               na.rm=TRUE)
-total_linked_site_weights[is.finite(total_linked_site_weights) == FALSE] <- 0
-total_linked_site_weights[is.na(total_linked_site_weights)] <- 0
-total_linked_site_weights[is.nan(total_linked_site_weights)] <- 0
-total_linked_site_weights <- Matrix::Diagonal(x=total_linked_site_weights)
-scaled_site_weights <- total_linked_site_weights %*%
-  promoter_conn_matrix[,distal_safe_sites, drop=FALSE] %*%promoter_activity_scores
-  scaled_site_weights
-scaled_site_weights@x[scaled_site_weights@x > 1] <- 1
-
-# Multiply distal accessibility by site weights
-distal_activity_scores <- scaled_site_weights %*% distal_activity_scores
-
-distal_activity_scores <-
-  distal_activity_scores[row.names(promoter_access_mat_in_cicero_map),, drop=FALSE]
-
-# Sum distal and promoter scores
-promoter_activity_scores <- distal_activity_scores +  
-  promoter_access_mat_in_cicero_map
-
-
-
-# Make and populate final matrix
-promoter_gene_mat <-
-  Matrix::sparseMatrix(j=as.numeric(factor(promoter_peak_table$peak)),
-                       i=as.numeric(factor(promoter_peak_table$gene)),
-                       x=1)
-colnames(promoter_gene_mat) = levels(factor(promoter_peak_table$peak))
-row.names(promoter_gene_mat) = levels(factor(promoter_peak_table$gene))
-promoter_gene_mat <- promoter_gene_mat[,row.names(promoter_activity_scores)]
-gene_activity_scores <- promoter_gene_mat %*% promoter_activity_scores
-
-
-first_cell <- colnames(gene_activity_scores)
-#cicero_cell <- read.table(cicero_cell)
-lenght1 <- length(first_cell)
-
-first_gene <- row.names(gene_activity_scores)
-lenght2 <- length(first_gene)
-c_c <- matrix(first_cell, nrow = lenght1, dimnames = list(first_cell,c("Cells")))
-c_g<- matrix(first_gene, nrow = lenght2, dimnames = list(first_gene,c("gene_short_name")))
-
-
-# processing GAM with Cicero
-refseq_conn_cds <-  suppressWarnings(new_cell_data_set(gene_activity_scores, cell_metadata = c_c, gene_metadata = c_g))
-
-refseq_conn_cds <- detect_genes(refseq_conn_cds)
-refseq_conn_cds <- estimate_size_factors(refseq_conn_cds)
-refseq_conn_cds <- preprocess_cds(refseq_conn_cds, method = "PCA")
-
-refseq_conn_cds <- reduce_dimension(refseq_conn_cds, reduction_method = 'UMAP', 
-                                     preprocess_method = "PCA")
-refseq_conn_cds = cluster_cells(refseq_conn_cds, resolution=0.95e-3)
-
-#plot_cells(refseq_conn_cds)
-
-refseq_conn_cds@colData@listData[["ATAC"]] <- class$CLASS
-
-#plot_cells(refseq_conn_cds, color_cells_by = "ATAC", label_groups_by_cluster = FALSE)
-
-refseq_conn_class_first <- as.data.frame(refseq_conn_cds@clusters@listData[["UMAP"]][["clusters"]])
-colnames(refseq_conn_class_first) <- "CLASS"
-
-ARI(class$CLASS, refseq_conn_class_first$CLASS)
-AMI(class$CLASS, refseq_conn_class_first$CLASS)
 
 ############# CCRE enhd conns #######
 
@@ -1326,56 +908,18 @@ final_GAM_cds@colData@listData[["ATAC"]] <- class$CLASS
 
 #plot_cells(GAM_final_cds, color_cells_by = "ATAC", label_groups_by_cluster = FALSE)
 
-GAM_final_class <- as.data.frame(GAM_final_cds@clusters@listData[["UMAP"]][["clusters"]])
-colnames(GAM_final_class) <- "CLASS"
+final_GAM_first <- as.data.frame(final_GAM_cds@clusters@listData[["UMAP"]][["clusters"]])
+colnames(final_GAM_first) <- "CLASS"
 
-ARI(class$CLASS, GAM_final_class$CLASS)
-AMI(class$CLASS, GAM_final_class$CLASS)
+ARI(class$CLASS, final_GAM_first$CLASS)
+AMI(class$CLASS, final_GAM_first$CLASS)
 
+tsv <- data.matrix(exprs(final_GAM_cds))
 
-
-g8 <- choose_cells(GAM_final_cds)
-
-markers <- top_markers(g8, group_cells_by = "ATAC")
-
-
-#plot_cells(g8,  color_cells_by = "ATAC", label_groups_by_cluster = FALSE)
-#plot_cells(g8, genes = "Rorb")
-
-###### norm #########
-unnorm_final <- GAM_final[!Matrix::rowSums(GAM_final) == 0, 
-                                  !Matrix::colSums(GAM_final) == 0]
-num_genes <- pData(input_cds)$num_genes_expressed
-names(num_genes) <- row.names(pData(input_cds))
-
-norm_final_gene_matrix <- normalize_gene_activities(unnorm_final, num_genes)
-
-norm_first_cell <- colnames(norm_final_gene_matrix)
-#cicero_cell <- read.table(cicero_cell)
-lenght1 <- length(norm_first_cell)
-
-norm_first_gene <- row.names(norm_final_gene_matrix)
-lenght2 <- length(norm_first_gene)
-c_c <- matrix(norm_first_cell, nrow = lenght1, dimnames = list(norm_first_cell,c("Cells")))
-c_g<- matrix(norm_first_gene, nrow = lenght2, dimnames = list(norm_first_gene,c("gene_short_name")))
+write.table(tsv, file='../TMPResults/GAM/10X_V1_Brain/gagam.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(final_GAM_first, file='../TMPResults/classifications/10X_V1_Brain/gagam_classifications.tsv', quote=FALSE, sep='\t', col.names = NA)
 
 
-## processing GAM with Cicero
-norm_final_cds_first <-  suppressWarnings(new_cell_data_set(norm_final_gene_matrix, cell_metadata = c_c, gene_metadata = c_g))
-
-norm_final_cds_first <- detect_genes(norm_final_cds_first)
-norm_final_cds_first <- estimate_size_factors(norm_final_cds_first)
-norm_final_cds_first <- preprocess_cds(norm_final_cds_first, method = "PCA")
-
-norm_final_cds_first <- reduce_dimension(norm_final_cds_first, reduction_method = 'UMAP', 
-                                   preprocess_method = "PCA")
-norm_final_cds_first = cluster_cells(norm_final_cds_first, resolution=0.95e-3)
-
-#plot_cells(norm_final_cds_first)
-
-norm_final_cds_first@colData@listData[["ATAC"]] <- class$CLASS
-
-#plot_cells(norm_final_cds_first, color_cells_by = "ATAC", label_groups_by_cluster = FALSE)
 
 
 
