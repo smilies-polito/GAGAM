@@ -1,0 +1,9 @@
+Species,Tissue,Cell Type,Cancer,Cell Marker,Source,Supported Sources,Details
+Human,Peripheral blood,CD34+,Normal,"CD34, THY1, ENG, KIT, PROM1",Custom list,"Pliner et al, 2019",
+Human,Peripheral blood,NKcells,Normal,"NCAM1, FCGR3A",Custom list,"Pliner et al, 2019",
+Human,Peripheral blood,Monocytes,Normal,"CD14, FCGR1A, CD68, S100A12",Custom list,"Pliner et al, 2019",
+Human,Peripheral blood,Bcells,Normal,"CD19, MS4A1, CD79A",Custom list,"Pliner et al, 2019",
+Human,Peripheral blood,Tcells,Normal,"CD3D, CD3E, CD3G",Custom list,"Pliner et al, 2019",
+Human,Peripheral blood,CD4 Tcell,Normal,"CD4, FOXP3, IL2RA, IL7R",Custom list,"Pliner et al, 2019",
+Human,Peripheral blood,CD8 Tcell,Normal,"CD8A, CD8B",Custom list,"Pliner et al, 2019",
+Human,Peripheral blood,Dendritic cells,Normal,"IL3RA, CD1C, BATF3, THBD, CD209",Custom list,"Pliner et al, 2019",

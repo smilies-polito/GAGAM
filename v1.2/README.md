@@ -133,7 +133,7 @@ The script will output a file containing the labeled peaks for each dataset in t
 
 ## Phase 2: Dataset processing
 
-The second phase consists in scATAC-seq data standard processing, construction of Cicero and GeneScoring GAM, and clustering classification of all of them.
+The second phase consists in scATAC-seq data standard processing, construction of Cicero and GeneScoring GAM, and clustering classification of all of them. Optionally, it takes and process also the scRNA-seq data from the multi-omic datasets, and create the objects for the comparaive analysis with gene expression.
 
 ### Input
 
@@ -167,6 +167,7 @@ Path for 10X V2.1.0 Brain inputs:
   - ../TMPResults/labeled_peaks/10x_v2_mousebrain/cCRE_labeled_peaks.csv
   - ../TMPDATA/10x_v2_mousebrain/
   - ../DATA/Genomes/mm10/GCF_000001635.26_GRCm38.p6_genomic.gtf
+
 
 ### Script
 
@@ -211,7 +212,7 @@ Path for 10x_v1_PBMChuman_processing.R outputs:
   - ../TMPResults/classifications/10x_V1_PBMChuman/genescoring_classifications.tsv
   - ../TMPResults/classifications/10x_V1_PBMChuman/atac_classification.tsv
   - ../TMPResults/Robjects/10x_V1_PBMChuman/processed_ATAC_cds
-  - ../TMPResults/Robjects/10x_V1_PBMChuman/Connection_table
+  - ../TMPResults/Robjects/10x_V1_PBMChuman/connection_table
 
 Path for 10X_V2_PBMC_processing.R outputs:
   - ../TMPResults/GAM/10X_V2_PBMC/cicero.tsv
@@ -220,7 +221,7 @@ Path for 10X_V2_PBMC_processing.R outputs:
   - ../TMPResults/classifications/10X_V2_PBMC/genescoring_classifications.tsv
   - ../TMPResults/classifications/10X_V2_PBMC/atac_classification.tsv
   - ../TMPResults/Robjects/10X_V2_PBMC/processed_ATAC_cds
-  - ../TMPResults/Robjects/10X_V2_PBMC/Connection_table
+  - ../TMPResults/Robjects/10X_V2_PBMC/connection_table
 
 Path for buenrostro_processing.R outputs:
   - ../TMPResults/GAM/buenrostro/cicero.tsv
@@ -229,7 +230,7 @@ Path for buenrostro_processing.R outputs:
   - ../TMPResults/classifications/buenrostro/genescoring_classifications.tsv
   - ../TMPResults/classifications/buenrostro/atac_classification.tsv
   - ../TMPResults/Robjects/buenrostro/processed_ATAC_cds
-  - ../TMPResults/Robjects/buenrostro/Connection_table
+  - ../TMPResults/Robjects/buenrostro/connection_table
 
 Path for 10x_multiome_processing.R outputs:
   - ../TMPResults/GAM/10x_PBMC_Multiome_Controller/cicero.tsv
@@ -238,7 +239,7 @@ Path for 10x_multiome_processing.R outputs:
   - ../TMPResults/classifications/10x_PBMC_Multiome_Controller/genescoring_classifications.tsv
   - ../TMPResults/classifications/10x_PBMC_Multiome_Controller/atac_classification.tsv
   - ../TMPResults/Robjects/10x_PBMC_Multiome_Controller/processed_ATAC_cds
-  - ../TMPResults/Robjects/10x_PBMC_Multiome_Controller/Connection_table
+  - ../TMPResults/Robjects/10x_PBMC_Multiome_Controller/connection_table
 
 Path for 10x_multiome_X_processing.R outputs:
   - ../TMPResults/GAM/10x_PBMC_Multiome_ChromiumX/cicero.tsv
@@ -247,7 +248,7 @@ Path for 10x_multiome_X_processing.R outputs:
   - ../TMPResults/classifications/10x_PBMC_Multiome_ChromiumX/genescoring_classifications.tsv
   - ../TMPResults/classifications/10x_PBMC_Multiome_ChromiumX/atac_classification.tsv
   - ../TMPResults/Robjects/10x_PBMC_Multiome_ChromiumX/processed_ATAC_cds
-  - ../TMPResults/Robjects/10x_PBMC_Multiome_ChromiumX/Connection_table
+  - ../TMPResults/Robjects/10x_PBMC_Multiome_ChromiumX/connection_table
 
 Path for 10x_v2_mousebrain_processing.R outputs:
   - ../TMPResults/GAM/10x_v2_mousebrain/cicero.tsv
@@ -256,7 +257,7 @@ Path for 10x_v2_mousebrain_processing.R outputs:
   - ../TMPResults/classifications/10x_v2_mousebrain/genescoring_classifications.tsv
   - ../TMPResults/classifications/10x_v2_mousebrain/atac_classification.tsv
   - ../TMPResults/Robjects/10x_v2_mousebrain/processed_ATAC_cds
-  - ../TMPResults/Robjects/10x_v2_mousebrain/Connection_table
+  - ../TMPResults/Robjects/10x_v2_mousebrain/connection_table
 
 
 
@@ -264,7 +265,7 @@ Path for 10x_v2_mousebrain_processing.R outputs:
 
 ### Input
 
-The inputs are all the Robjects saved by the processing scripts in the respective folders.
+The inputs are all the Robjects saved by the processing scripts in the respective folders.Moreover, at the start of the execution it will ask to provide the dataset folder name. This will allow the script to find the rigth inputs and save the outputs in the respective folders. Optionally, perform the comparative analysis between gene activity and gene expression, for the multi-omic datasets.
 
 Path for 10X V1.0.1 PBMC inputs:
   - ../TMPResults/Robjects/10x_V1_PBMChuman/
@@ -315,37 +316,43 @@ Rscript GAGAM_computation_mm10.R
 
 ### Output
 
-The script execution outputs the GAGAM, its clustering classifications, classification and ARI and AMI tables. 
+The script execution outputs the GAGAM, its clustering classifications, IMAGES, and ARI and AMI tables. 
 
 Path for 10X V1.0.1 PBMC outputs:
   - ../TMPResults/GAM/10x_V1_PBMChuman/gagam.tsv
   - ../TMPResults/classifications/10x_V1_PBMChuman/gagam_classifications.tsv
   - ../TMPResults/metrics/10x_V1_PBMChuman/ARI_AMI_table.tsv
+  - ../TMPResults/IMAGES/10x_V1_PBMChuman/
 
 Path for 10X V2.0.0 PBMC outputs:
   - ../TMPResults/GAM/10X_V2_PBMC/gagam.tsv
   - ../TMPResults/classifications/10X_V2_PBMC/gagam_classifications.tsv
   - ../TMPResults/metrics/10X_V2_PBMC/ARI_AMI_table.tsv
+  - ../TMPResults/IMAGES/10X_V2_PBMC/
 
 Path for Buenrostro2018 outputs:
   - ../TMPResults/GAM/buenrostro/gagam.tsv
   - ../TMPResults/classifications/buenrostro/gagam_classifications.tsv
   - ../TMPResults/metrics/buenrostro/ARI_AMI_table.tsv
+  - ../TMPResults/IMAGES/buenrostro/
 
 Path for 10X Multiome Controller PBMC outputs:
   - ../TMPResults/GAM/10x_PBMC_Multiome_Controller/gagam.tsv
   - ../TMPResults/classifications/10x_PBMC_Multiome_Controller/gagam_classifications.tsv
   - ../TMPResults/metrics/10x_PBMC_Multiome_Controller/ARI_AMI_table.tsv
+  - ../TMPResults/IMAGES/10x_PBMC_Multiome_Controller/
 
 Path for 10X Multiome Chromium X PBMC outputs:
   - ../TMPResults/GAM/10x_PBMC_Multiome_ChromiumX/gagam.tsv
   - ../TMPResults/classifications/10x_PBMC_Multiome_ChromiumX/gagam_classifications.tsv
   - ../TMPResults/metrics/10x_PBMC_Multiome_ChromiumX/ARI_AMI_table.tsv
+  - ../TMPResults/IMAGES/10x_PBMC_Multiome_ChromiumX/
 
 Path for 10X V2.1.0 Brain outputs:
   - ../TMPResults/GAM/10x_v2_mousebrain/gagam.tsv
   - ../TMPResults/classifications/10x_v2_mousebrain/gagam_classifications.tsv
   - ../TMPResults/metrics/10x_v2_mousebrain/ARI_AMI_table.tsv
+  - ../TMPResults/IMAGES/10x_v2_mousebrain/
 
 ## Phase 4: Metrics Calculation
 
@@ -372,8 +379,6 @@ python3 computeRAGI.py '../TMPResults/GAM/10x_V1_PBMChuman/cicero.tsv' '../TMPRe
 #GeneScoring GAM
 python3 computeRAGI.py '../TMPResults/GAM/10x_V1_PBMChuman/genescoring.tsv' '../TMPResults/classifications/10x_V1_PBMChuman/' '../DATA/Genes_2022/Housekeeping_genes/Housekeeping_genes_human.txt' '../DATA/Genes_2022/Marker_genes/human_PBMC_gene_markers.csv'
 ```
-
-
 ```
 #### 10X V2.0.0 PBMC ######
 #GAGAM v1.2
@@ -395,21 +400,22 @@ python3 computeRAGI.py '../TMPResults/GAM/buenrostro/genescoring.tsv' '../TMPRes
 ```
 #### 10X Multiome Controller PBMC ######
 #GAGAM v1.2
-python3 computeRAGI.py '../TMPResults/GAM/10x_PBMC_Multiome_Controller/gagam.tsv' '../TMPResults/classifications/10x_PBMC_Multiome_Controller/' '../DATA/Genes_2022/Housekeeping_genes/Housekeeping_genes_mouse.txt' '../DATA/Genes_2022/Marker_genes/mouse_brain_gene_markers.csv'
+python3 computeRAGI.py '../TMPResults/GAM/10x_PBMC_Multiome_Controller/gagam.tsv' '../TMPResults/classifications/10x_PBMC_Multiome_Controller/' '../DATA/Genes_2022/Housekeeping_genes/Housekeeping_genes_human.txt' '../DATA/Genes_2022/Marker_genes/human_PBMC_Pliner2019_gene_markers.csv'
 #Cicero GAM
-python3 computeRAGI.py '../TMPResults/GAM/10x_PBMC_Multiome_Controller/cicero.tsv' '../TMPResults/classifications/10x_PBMC_Multiome_Controller/' '../DATA/Genes_2022/Housekeeping_genes/Housekeeping_genes_mouse.txt' '../DATA/Genes_2022/Marker_genes/mouse_brain_gene_markers.csv'
+python3 computeRAGI.py '../TMPResults/GAM/10x_PBMC_Multiome_Controller/cicero.tsv' '../TMPResults/classifications/10x_PBMC_Multiome_Controller/' '../DATA/Genes_2022/Housekeeping_genes/Housekeeping_genes_human.txt' '../DATA/Genes_2022/Marker_genes/human_PBMC_Pliner2019_gene_markers.csv'
 #GeneScoring GAM
-python3 computeRAGI.py '../TMPResults/GAM/10x_PBMC_Multiome_Controller/genescoring.tsv' '../TMPResults/classifications/10x_PBMC_Multiome_Controller/' '../DATA/Genes_2022/Housekeeping_genes/Housekeeping_genes_mouse.txt' '../DATA/Genes_2022/Marker_genes/mouse_brain_gene_markers.csv'
+python3 computeRAGI.py '../TMPResults/GAM/10x_PBMC_Multiome_Controller/genescoring.tsv' '../TMPResults/classifications/10x_PBMC_Multiome_Controller/' '../DATA/Genes_2022/Housekeeping_genes/Housekeeping_genes_human.txt' '../DATA/Genes_2022/Marker_genes/human_PBMC_Pliner2019_gene_markers.csv'
 ```
 ```
 #### 10X Multiome Chromium X PBMC ######
 #GAGAM v1.2
-python3 computeRAGI.py '../TMPResults/GAM/10x_PBMC_Multiome_ChromiumX/gagam.tsv' '../TMPResults/classifications/10x_PBMC_Multiome_ChromiumX/' '../DATA/Genes_2022/Housekeeping_genes/Housekeeping_genes_mouse.txt' '../DATA/Genes_2022/Marker_genes/mouse_brain_gene_markers.csv'
+python3 computeRAGI.py '../TMPResults/GAM/10x_PBMC_Multiome_ChromiumX/gagam.tsv' '../TMPResults/classifications/10x_PBMC_Multiome_ChromiumX/' '../DATA/Genes_2022/Housekeeping_genes/Housekeeping_genes_human.txt' '../DATA/Genes_2022/Marker_genes/human_PBMC_Pliner2019_gene_markers.csv'
 #Cicero GAM
-python3 computeRAGI.py '../TMPResults/GAM/10x_PBMC_Multiome_ChromiumX/cicero.tsv' '../TMPResults/classifications/10x_PBMC_Multiome_ChromiumX/' '../DATA/Genes_2022/Housekeeping_genes/Housekeeping_genes_mouse.txt' '../DATA/Genes_2022/Marker_genes/mouse_brain_gene_markers.csv'
+python3 computeRAGI.py '../TMPResults/GAM/10x_PBMC_Multiome_ChromiumX/cicero.tsv' '../TMPResults/classifications/10x_PBMC_Multiome_ChromiumX/' '../DATA/Genes_2022/Housekeeping_genes/Housekeeping_genes_human.txt' '../DATA/Genes_2022/Marker_genes/human_PBMC_Pliner2019_gene_markers.csv'
 #GeneScoring GAM
-python3 computeRAGI.py '../TMPResults/GAM/10x_PBMC_Multiome_ChromiumX/genescoring.tsv' '../TMPResults/classifications/10x_PBMC_Multiome_ChromiumX/' '../DATA/Genes_2022/Housekeeping_genes/Housekeeping_genes_mouse.txt' '../DATA/Genes_2022/Marker_genes/mouse_brain_gene_markers.csv'
+python3 computeRAGI.py '../TMPResults/GAM/10x_PBMC_Multiome_ChromiumX/genescoring.tsv' '../TMPResults/classifications/10x_PBMC_Multiome_ChromiumX/' '../DATA/Genes_2022/Housekeeping_genes/Housekeeping_genes_human.txt' '../DATA/Genes_2022/Marker_genes/human_PBMC_Pliner2019_gene_markers.csv'
 ```
+
 ```
 #### 10X V2.1.0 Brain ######
 #GAGAM v1.2

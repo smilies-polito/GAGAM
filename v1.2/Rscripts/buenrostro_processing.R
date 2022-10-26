@@ -180,25 +180,25 @@ mat <- mat[,rownames(metadata)]
 
 ####### CICERO COMPUTATION #######
 
-input_cds <- new_cell_data_set(mat, cell_metadata = metadata)
-input_cds <- input_cds[,Matrix::colSums(exprs(input_cds)) != 0]
-input_cds <- input_cds[Matrix::rowSums(exprs(input_cds)) != 0,]
+processed_ATAC_cds <- new_cell_data_set(mat, cell_metadata = metadata)
+processed_ATAC_cds <- processed_ATAC_cds[,Matrix::colSums(exprs(processed_ATAC_cds)) != 0]
+processed_ATAC_cds <- processed_ATAC_cds[Matrix::rowSums(exprs(processed_ATAC_cds)) != 0,]
 
-input_cds <- detect_genes(input_cds)
-input_cds <- estimate_size_factors(input_cds)
-input_cds <- preprocess_cds(input_cds,method ="LSI")
-input_cds <- reduce_dimension(input_cds, reduction_method = 'UMAP',  preprocess_method = "LSI")
-input_cds <- cluster_cells(input_cds, resolution = 3e-3)
-#plot_cells(input_cds)
-#plot_cells(input_cds, color_cells_by = "label", label_groups_by_cluster = FALSE, label_cell_groups = FALSE)
+processed_ATAC_cds <- detect_genes(processed_ATAC_cds)
+processed_ATAC_cds <- estimate_size_factors(processed_ATAC_cds)
+processed_ATAC_cds <- preprocess_cds(processed_ATAC_cds,method ="LSI")
+processed_ATAC_cds <- reduce_dimension(processed_ATAC_cds, reduction_method = 'UMAP',  preprocess_method = "LSI")
+processed_ATAC_cds <- cluster_cells(processed_ATAC_cds, resolution = 3e-3)
+#plot_cells(processed_ATAC_cds)
+#plot_cells(processed_ATAC_cds, color_cells_by = "label", label_groups_by_cluster = FALSE, label_cell_groups = FALSE)
 
-input_cds_first <- as.data.frame(input_cds@clusters@listData[["UMAP"]][["clusters"]])
-colnames(input_cds_first) <- "CLASS"
+processed_ATAC_cds_first <- as.data.frame(processed_ATAC_cds@clusters@listData[["UMAP"]][["clusters"]])
+colnames(processed_ATAC_cds_first) <- "CLASS"
 
-#ARI(metadata$label, input_cds_first$CLASS)
-#AMI(metadata$label, input_cds_first$CLASS)
+#ARI(metadata$label, processed_ATAC_cds_first$CLASS)
+#AMI(metadata$label, processed_ATAC_cds_first$CLASS)
 
-saveRDS(input_cds, "../TMPResults/Robjects/buenrostro/input_cds")
+saveRDS(processed_ATAC_cds, "../TMPResults/Robjects/buenrostro/processed_ATAC_cds")
 
 ####### CO-ACCESSIBILITY ########
 #data("human.hg19.genome")
@@ -206,15 +206,15 @@ genome_ref = read.table("../DATA/Gene_2022/Genomes/hg38/hg38.p13.chrom.sizes.txt
 genome_ref <- genome_ref[1:24,]
 
 
-umap_coords <- reducedDims(input_cds)$UMAP
-cicero_cds <- make_cicero_cds(input_cds, reduced_coordinates = umap_coords)
-conns <- run_cicero(cicero_cds, genome_ref)
+umap_coords <- reducedDims(processed_ATAC_cds)$UMAP
+cicero_cds <- make_cicero_cds(processed_ATAC_cds, reduced_coordinates = umap_coords)
+connection_table <- run_cicero(cicero_cds, genome_ref)
 
-saveRDS(conns, "../TMPResults/Robjects/buenrostro/conns")
-#conns <- readRDS("../TMPResults/conns_buenrostro")
+saveRDS(connection_table, "../TMPResults/Robjects/buenrostro/connection_table")
+#connection_table <- readRDS("../TMPResults/connection_table_buenrostro")
 
 
-con_val <- conns_buenrostro[conns_buenrostro$coaccess > 0,]
+con_val <- connection_table[connection_table$coaccess > 0,]
 con_val <- con_val[!is.na(con_val$coaccess),]
 coaccess <- signif(mean(con_val$coaccess), digits = 2)
 
@@ -256,15 +256,15 @@ gene_annotation_sub <- gene_annotation_sub[,c("seqid", "start", "end", "gene_id"
 # Rename the gene symbol column to "gene"
 names(gene_annotation_sub)[4] <- "gene"
 
-input_cds <- annotate_cds_by_site(input_cds, gene_annotation_sub)
+processed_ATAC_cds <- annotate_cds_by_site(processed_ATAC_cds, gene_annotation_sub)
 
-tail(fData(input_cds))
+tail(fData(processed_ATAC_cds))
 
-unnorm_ga <- build_gene_activity_matrix(input_cds, conns_buenrostro, coaccess_cutoff = coaccess)
+unnorm_ga <- build_gene_activity_matrix(processed_ATAC_cds, connection_table, coaccess_cutoff = coaccess)
 unnorm_ga <- unnorm_ga[!Matrix::rowSums(unnorm_ga) == 0, 
                        !Matrix::colSums(unnorm_ga) == 0]
-num_genes <- pData(input_cds)$num_genes_expressed
-names(num_genes) <- row.names(pData(input_cds))
+num_genes <- pData(processed_ATAC_cds)$num_genes_expressed
+names(num_genes) <- row.names(pData(processed_ATAC_cds))
 
 cicero_gene_activities <- normalize_gene_activities(unnorm_ga, num_genes)
 
@@ -376,7 +376,7 @@ cds_gs <- reduce_dimension(cds_gs, reduction_method = 'UMAP',
                            preprocess_method = "PCA")
 cds_gs = cluster_cells(cds_gs, resolution=3e-3)
 
-label <- as.data.frame(input_cds@colData@listData)
+label <- as.data.frame(processed_ATAC_cds@colData@listData)
 class3 <- as.data.frame(cds_gs@clusters@listData[["UMAP"]][["clusters"]])
 colnames(label)[1] <- "CLASS"
 colnames(class3) <- "CLASS"
@@ -392,7 +392,7 @@ ARI
 AMI
 ####### sIGNAC ########
 
-exprs(input_cds)
+exprs(processed_ATAC_cds)
 PBMC_assay <- CreateChromatinAssay(
   counts = mat,
   sep = c("_", "_"),
@@ -419,7 +419,7 @@ labeled_peaks <- separate(labeled_peaks, col = encodeCcreCombined_hg38_ucscLabel
 
 labeled_peaks$site_names <- paste0(labeled_peaks$X.chrom, "_", labeled_peaks$chromStart, "_", labeled_peaks$chromEnd)
 
-labeled_peaks <- labeled_peaks[labeled_peaks$site_names %in% rownames(fData(input_cds)),]
+labeled_peaks <- labeled_peaks[labeled_peaks$site_names %in% rownames(fData(processed_ATAC_cds)),]
 
 saveRDS(labeled_peaks, "../TMPResults/Robjects/buenrostro/labeled_peaks")
 saveRDS(nmax, "../TMPResults/Robjects/buenrostro/nmax")

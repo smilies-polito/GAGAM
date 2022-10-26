@@ -185,30 +185,30 @@ rownames(v1_pbmc_matrix) <- new_new_peaks
 
 v1_pbmc_matrix@x[v1_pbmc_matrix@x >0] <- 1
 
-input_cds <- new_cell_data_set(v1_pbmc_matrix)
-input_cds <- input_cds[,Matrix::colSums(exprs(input_cds)) != 0]
-input_cds <- input_cds[Matrix::rowSums(exprs(input_cds)) != 0,]
+processed_ATAC_cds <- new_cell_data_set(v1_pbmc_matrix)
+processed_ATAC_cds <- processed_ATAC_cds[,Matrix::colSums(exprs(processed_ATAC_cds)) != 0]
+processed_ATAC_cds <- processed_ATAC_cds[Matrix::rowSums(exprs(processed_ATAC_cds)) != 0,]
 
-input_cds <- detect_genes(input_cds)
-input_cds <- estimate_size_factors(input_cds)
-input_cds <- preprocess_cds(input_cds,method ="LSI")
-input_cds <- reduce_dimension(input_cds, reduction_method = 'UMAP',  preprocess_method = "LSI")
-input_cds <- cluster_cells(input_cds)
-#plot_cells(input_cds)
-saveRDS(input_cds, "../TMPResults/Robjects/10x_V1_PBMChuman/input_cds")
+processed_ATAC_cds <- detect_genes(processed_ATAC_cds)
+processed_ATAC_cds <- estimate_size_factors(processed_ATAC_cds)
+processed_ATAC_cds <- preprocess_cds(processed_ATAC_cds,method ="LSI")
+processed_ATAC_cds <- reduce_dimension(processed_ATAC_cds, reduction_method = 'UMAP',  preprocess_method = "LSI")
+processed_ATAC_cds <- cluster_cells(processed_ATAC_cds)
+#plot_cells(processed_ATAC_cds)
+saveRDS(processed_ATAC_cds, "../TMPResults/Robjects/10x_V1_PBMChuman/processed_ATAC_cds")
 
 ####### CO-ACCESSIBILITY ########
 genome_ref = read.table("../DATA/Gene_2022/Genomes/hg38/hg38.p13.chrom.sizes.txt")
 genome_ref <- genome_ref[1:24,]
 
-umap_coords <- reducedDims(input_cds)$UMAP
-cicero_cds <- make_cicero_cds(input_cds, reduced_coordinates = umap_coords)
-conns <- run_cicero(cicero_cds, genome_ref)
+umap_coords <- reducedDims(processed_ATAC_cds)$UMAP
+cicero_cds <- make_cicero_cds(processed_ATAC_cds, reduced_coordinates = umap_coords)
+connection_table <- run_cicero(cicero_cds, genome_ref)
 
-saveRDS(conns, "../TMPResults/Robjects/10x_V1_PBMChuman/conns")
-#conns <- readRDS("../TMPResults/conns_10xv1")
+saveRDS(connection_table, "../TMPResults/Robjects/10x_V1_PBMChuman/connection_table")
+#connection_table <- readRDS("../TMPResults/connection_table_10xv1")
 
-con_val <- conns[conns$coaccess > 0,]
+con_val <- connection_table[connection_table$coaccess > 0,]
 con_val <- con_val[!is.na(con_val$coaccess),]
 coaccess <- signif(mean(con_val$coaccess), digits = 2)
 
@@ -249,7 +249,7 @@ labeled_peaks <- separate(labeled_peaks, col = encodeCcreCombined_hg38_ucscLabel
 
 labeled_peaks$site_names <- paste0(labeled_peaks$X.chrom, "_", labeled_peaks$chromStart, "_", labeled_peaks$chromEnd)
 
-labeled_peaks <- labeled_peaks[labeled_peaks$site_names %in% rownames(fData(input_cds)),]
+labeled_peaks <- labeled_peaks[labeled_peaks$site_names %in% rownames(fData(processed_ATAC_cds)),]
 labeled_peaks <- labeled_peaks[!duplicated(labeled_peaks),]
 
 saveRDS(labeled_peaks, "../TMPResults/Robjects/10x_V1_PBMChuman/labeled_peaks")

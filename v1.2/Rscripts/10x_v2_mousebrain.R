@@ -152,31 +152,31 @@ row.names(matrix) <- peaks
 colnames(matrix) <- cells$V1
 
 matrix@x[matrix@x > 0] <- 1
-input_cds <- new_cell_data_set(matrix)
+processed_ATAC_cds <- new_cell_data_set(matrix)
 
 
-input_cds <- detect_genes(input_cds)
-input_cds <- estimate_size_factors(input_cds)
-input_cds <- preprocess_cds(input_cds,method ="LSI")
-input_cds <- reduce_dimension(input_cds, reduction_method = 'UMAP',  preprocess_method = "LSI")
-input_cds <- cluster_cells(input_cds)
+processed_ATAC_cds <- detect_genes(processed_ATAC_cds)
+processed_ATAC_cds <- estimate_size_factors(processed_ATAC_cds)
+processed_ATAC_cds <- preprocess_cds(processed_ATAC_cds,method ="LSI")
+processed_ATAC_cds <- reduce_dimension(processed_ATAC_cds, reduction_method = 'UMAP',  preprocess_method = "LSI")
+processed_ATAC_cds <- cluster_cells(processed_ATAC_cds)
 
-#plot_cells(input_cds)
-saveRDS(input_cds, "../TMPResults/Robjects/10x_v2_mousebrain/input_cds")
+#plot_cells(processed_ATAC_cds)
+saveRDS(processed_ATAC_cds, "../TMPResults/Robjects/10x_v2_mousebrain/processed_ATAC_cds")
 
 ####### CO-ACCESSIBILITY ########
 #data("mouse.mm9.genome")
 mm10 <- read.table("../DATA/Gene_2022/Genomes/mm10/mm10.chrom.sizes.txt")
 
-umap_coords <- reducedDims(input_cds)$UMAP
-cicero_cds <- make_cicero_cds(input_cds, reduced_coordinates = umap_coords)
+umap_coords <- reducedDims(processed_ATAC_cds)$UMAP
+cicero_cds <- make_cicero_cds(processed_ATAC_cds, reduced_coordinates = umap_coords)
 
 
-conns <- run_cicero(cicero_cds, mm10.1, sample_num = 100) 
-saveRDS(conns, "../TMPResults/Robjects/10x_v2_mousebrain/conns")
-#conns <- readRDS("../TMPResults/conns_10x_v2_mousebrain")
+connection_table <- run_cicero(cicero_cds, mm10.1, sample_num = 100)
+saveRDS(connection_table, "../TMPResults/Robjects/10x_v2_mousebrain/connection_table")
+#connection_table <- readRDS("../TMPResults/connection_table_10x_v2_mousebrain")
 
-con_val <- conns[conns$coaccess > 0,]
+con_val <- connection_table[connection_table$coaccess > 0,]
 con_val <- con_val[!is.na(con_val$coaccess),]
 coaccess <- signif(mean(con_val$coaccess), digits = 2)
 
@@ -219,7 +219,7 @@ labeled_peaks <- separate(labeled_peaks, col = encodeCcreCombined_ucscLabel, sep
 
 labeled_peaks$site_names <- paste0(labeled_peaks$X.chrom, "_", labeled_peaks$chromStart, "_", labeled_peaks$chromEnd)
 
-labeled_peaks <- labeled_peaks[labeled_peaks$site_names %in% rownames(fData(input_cds)),]
+labeled_peaks <- labeled_peaks[labeled_peaks$site_names %in% rownames(fData(processed_ATAC_cds)),]
 labeled_peaks <- labeled_peaks[!duplicated(labeled_peaks),]
 
 saveRDS(labeled_peaks, "../TMPResults/Robjects/10x_v2_mousebrain/labeled_peaks")
@@ -267,18 +267,18 @@ gene_annotation_sub <- gene_annotation_sub[,c("seqid", "start", "end", "gene_id"
 # Rename the gene symbol column to "gene"
 names(gene_annotation_sub)[4] <- "gene"
 
-input_cds <- annotate_cds_by_site(input_cds, gene_annotation_sub)
+processed_ATAC_cds <- annotate_cds_by_site(processed_ATAC_cds, gene_annotation_sub)
 
-tail(fData(input_cds))
-
-
+tail(fData(processed_ATAC_cds))
 
 
-unnorm_ga <- build_gene_activity_matrix(input_cds, conns)
+
+
+unnorm_ga <- build_gene_activity_matrix(processed_ATAC_cds, connection_table)
 unnorm_ga <- unnorm_ga[!Matrix::rowSums(unnorm_ga) == 0, 
                        !Matrix::colSums(unnorm_ga) == 0]
-num_genes <- pData(input_cds)$num_genes_expressed
-names(num_genes) <- row.names(pData(input_cds))
+num_genes <- pData(processed_ATAC_cds)$num_genes_expressed
+names(num_genes) <- row.names(pData(processed_ATAC_cds))
 
 cicero_gene_activities <- normalize_gene_activities(unnorm_ga, num_genes)
 
@@ -305,7 +305,7 @@ cds_cicero = cluster_cells(cds_cicero, resolution=1e-3)
 
 #plot_cells(cds_cicero)
 
-class <- as.data.frame(input_cds@clusters@listData[["UMAP"]][["clusters"]])
+class <- as.data.frame(processed_ATAC_cds@clusters@listData[["UMAP"]][["clusters"]])
 class2 <- as.data.frame(cds_cicero@clusters@listData[["UMAP"]][["clusters"]])
 colnames(class) <- "CLASS"
 colnames(class2) <- "CLASS"
@@ -414,7 +414,7 @@ cds_gs = cluster_cells(cds_gs, resolution=0.8e-3)
 
 #plot_cells(cds_gs)
 
-class <- as.data.frame(input_cds@clusters@listData[["UMAP"]][["clusters"]])
+class <- as.data.frame(processed_ATAC_cds@clusters@listData[["UMAP"]][["clusters"]])
 colnames(class) <- "CLASS"
 
 class3 <- as.data.frame(cds_gs@clusters@listData[["UMAP"]][["clusters"]])

@@ -112,20 +112,28 @@ library(GenomeInfoDb)
 #
 # NEEDED ELEMENTS FROM THE DATASETS PROCESSING SCRIPTS:
 # 
-# input_cds: THE SCATAC-SEQ DATA OBJECT
+# processed_ATAC_cds: THE SCATAC-SEQ DATA OBJECT
 # labeled_peaks: LABELED PEAKS TABLE
 # nmax
 # brain: THE SEURAT OBJECT WITH THE ATAC DATA IN IT
-# conns: THE CONNECTION OBJECT FROM THE CO-ACCESSIBILITY COMPUTATION
-# 
+# connection_table: THE CONNECTION OBJECT FROM THE CO-ACCESSIBILITY COMPUTATION
+#
+# OPTIONAL:
+#
+# CDS_RNA: THE OBJECT WITH PROCESSED SCRNA-SEQ, IF MULTI-OMIC DATASET
+#
 #######################################################################################
-input_cds <- readRDS("../TMPResults/input_cds")
-labeled_peaks <- readRDS("../TMPResults/labeled_peaks")
-nmax <- readRDS("../TMPResults/nmax")
-PBMC <- readRDS("../TMPResults/PBMC")
-conns <- readRDS("../TMPResults/conns")
+folder <- readline(prompt="Enter dataset folder name: ")
+#paste0("../TMPResults/")"
+#LOADING NECESSARY OBJECTS
+processed_ATAC_cds <- readRDS(paste0("../TMPResults/Robjects/",folder,"/processed_ATAC_cds"))
+labeled_peaks <- readRDS(paste0("../TMPResults/Robjects/",folder,"/labeled_peaks"))
+nmax <- readRDS(paste0("../TMPResults/Robjects/",folder,"/nmax"))
+brain <- readRDS(paste0("../TMPResults/Robjects/",folder,"/brain"))
+connection_table <- readRDS(paste0("../TMPResults/Robjects/",folder,"/connection_table"))
 
-####
+# UNCOMMENT THE FOLLOWING LINE IF YOU WANT TO PERFORM COMPARATIVE ANALYSIS WITH SCRNA-SEQ DATA FROM A MULTI-OMIC DATASET
+#CDS_RNA <- raedRDS(paste0("../TMPResults/Robjects/",folder,"/CDS_RNA"))
 
 if (!(dir.exists("../TMPResults"))){
   dir.create("../TMPResults")
@@ -134,7 +142,32 @@ if (!(dir.exists("../TMPResults"))){
 if (!(dir.exists("../TMPResults/classifications"))){
   dir.create("../TMPResults/classifications")
 }
+if (!(dir.exists(pasteo("../TMPResults/classifications/",folder)))){
+  dir.create(pasteo("../TMPResults/classifications/",folder))
+}
 
+
+if (!(dir.exists("../TMPResults/GAM"))){
+  dir.create("../TMPResults/GAM")
+}
+if (!(dir.exists(pasteo("../TMPResults/GAM/",folder)))){
+  dir.create(pasteo("../TMPResults/GAM/",folder))
+}
+
+
+if (!(dir.exists("../TMPResults/metrics"))){
+  dir.create("../TMPResults/metrics")
+}
+if (!(dir.exists(pasteo("../TMPResults/metrics/",folder)))){
+  dir.create(pasteo("../TMPResults/metrics/",folder))
+}
+
+if (!(dir.exists("../TMPResults/IMAGES"))){
+  dir.create("../TMPResults/IMAGES")
+}
+if (!(dir.exists(pasteo("../TMPResults/IMAGES/",folder)))){
+  dir.create(pasteo("../TMPResults/IMAGES/",folder))
+}
 
 #####
 
@@ -163,12 +196,12 @@ refseq_gene_annotation_sub <- rbind(pos, neg)
 refseq_gene_annotation_sub <- refseq_gene_annotation_sub[,c("seqid", "start", "end", "gene_id")]
 
 names(refseq_gene_annotation_sub)[4] <- "gene"
-input_cds <- annotate_cds_by_site(input_cds, refseq_gene_annotation_sub)
+processed_ATAC_cds <- annotate_cds_by_site(processed_ATAC_cds, refseq_gene_annotation_sub)
 
 
 #CONSTRUCT PEAKS INFORMATION FROM LABELED PEAKS
-peaks_multi_info <- fData(input_cds)
-peaks_multi_info$site_name <- rownames(fData(input_cds))
+peaks_multi_info <- fData(processed_ATAC_cds)
+peaks_multi_info$site_name <- rownames(fData(processed_ATAC_cds))
 peaks_multi_info$is.prom <- FALSE
 peaks_multi_info$is.enhD <- FALSE
 peaks_multi_info <- cbind(peaks_multi_info,labeled_peaks[7:(nmax+6)])
@@ -237,7 +270,7 @@ refseq_promoter_gene_mat <-
                        i=as.numeric(factor(refseq_promoter_peak_table$gene)),
                        x=1)
 
-refseq_accessibility_mat <- exprs(input_cds)
+refseq_accessibility_mat <- exprs(processed_ATAC_cds)
 refseq_accessibility_mat@x[refseq_accessibility_mat@x>0] <-1
 
 refseq_promoter_activity_scores <- refseq_accessibility_mat[refseq_near_prom_list,, drop=FALSE]
@@ -312,7 +345,7 @@ refseq_allgene_gene_mat <- refseq_allgene_gene_mat[row.names(refseq_allgene_gene
 
 
 
-refseq_allgene_accessibility_mat <- exprs(input_cds)
+refseq_allgene_accessibility_mat <- exprs(processed_ATAC_cds)
 refseq_allgene_accessibility_mat@x[refseq_allgene_accessibility_mat@x>0] <- 1
 refseq_allgene_activity_scores <- refseq_allgene_accessibility_mat[allgene_peaks_list,, drop=FALSE]
 
@@ -388,19 +421,22 @@ make_sparse_matrix <- function(data,
 }
 
 #####
-accessibility_mat <- exprs(input_cds)
+accessibility_mat <- exprs(processed_ATAC_cds)
 accessibility_mat@x[accessibility_mat@x>0] <-1
 #rownames(accessibility_mat) <- gsub(":", "_",rownames(accessibility_mat))
 #rownames(accessibility_mat) <- gsub("-", "_",rownames(accessibility_mat))
+con_val <- connection_table[connection_table$coaccess > 0,]
+con_val <- con_val[!is.na(con_val$coaccess),]
+coaccess <- signif(mean(con_val$coaccess), digits = 2)
 
-if ("dist" %in% colnames(conns) == FALSE) {
-  Peak1_cols <- split_peak_names(conns$Peak1)
-  Peak2_cols <- split_peak_names(conns$Peak2)
+if ("dist" %in% colnames(connection_table) == FALSE) {
+  Peak1_cols <- split_peak_names(connection_table$Peak1)
+  Peak2_cols <- split_peak_names(connection_table$Peak2)
   Peak1_bp <- round((as.integer(Peak1_cols[,3]) +
                        as.integer(Peak1_cols[,2])) / 2)
   Peak2_bp <- round((as.integer(Peak2_cols[,3]) +
                        as.integer(Peak2_cols[,2])) / 2)
-  conns$dist <- abs(Peak2_bp - Peak1_bp)
+  connection_table$dist <- abs(Peak2_bp - Peak1_bp)
 }
 
 site_weights = NULL
@@ -429,17 +465,17 @@ colnames(promoter_peak_table) <- c("peak", "gene")
 
 dist_thresh=300000
 coaccess
-prom_enhD <- conns[(conns$Peak1 %in%
+prom_enhD <- connection_table[(connection_table$Peak1 %in%
                       promoter_peak_table$peak &
-                      conns$Peak2 %in%
-                      enhD_peaks_list) | (conns$Peak2 %in%
+                      connection_table$Peak2 %in%
+                      enhD_peaks_list) | (connection_table$Peak2 %in%
                                             promoter_peak_table$peak &
-                                            conns$Peak1 %in%
+                                            connection_table$Peak1 %in%
                                             enhD_peaks_list),]
 
-#prom_enhD <- conns[(conns$Peak1 %in%
+#prom_enhD <- connection_table[(connection_table$Peak1 %in%
 #                                 promoter_peak_table$peak &
-#                                 conns$Peak2 %in%
+#                                 connection_table$Peak2 %in%
 #                                 enhD_peaks_list),]
 
 
@@ -507,14 +543,14 @@ gene_activity_scores <- promoter_gene_mat %*% promoter_activity_scores
 
 GAGAM2 <- gene_activity_scores 
 
-# RUN THE FOLLOWING LINE ONLY IF ONE WANTS ALL THREE CONTRIBUTIONS
-GAGAM2[rownames(refseq_allgene_gene_matrix),] <- GAGAM2[rownames(refseq_allgene_gene_matrix),] + refseq_allgene_gene_matrix
+# UNCOMMENT AND RUN THE FOLLOWING LINE ONLY IF ONE WANTS ALL THREE CONTRIBUTIONS
+# GAGAM2[rownames(refseq_allgene_gene_matrix),] <- GAGAM2[rownames(refseq_allgene_gene_matrix),] + refseq_allgene_gene_matrix
 
 GAGAM1 <- GAGAM2
 final_GAM <- GAGAM1
 
-num_genes <- pData(input_cds)$num_genes_expressed
-names(num_genes) <- row.names(pData(input_cds))
+num_genes <- pData(processed_ATAC_cds)$num_genes_expressed
+names(num_genes) <- row.names(pData(processed_ATAC_cds))
 
 # NORMALIZATION OF GAGAM
 final_GAM <- normalize_gene_activities(prova, num_genes)
@@ -543,12 +579,12 @@ final_GAM_cds <- reduce_dimension(final_GAM_cds, reduction_method = 'UMAP',
 #SET YOUR OWN RESOLUTION
 final_GAM_cds = cluster_cells(final_GAM_cds, resolution=1.2e-3)
 
-pdf("../TMPResults/GAGAM_plot.pdf")
+pdf(pasteo("../TMPResults/IMAGES/",folder,"/GAGAM_plot.pdf"))
 plot_cells(final_GAM_cds, cell_size = 1.2, group_label_size = 5)
 dev.off()
 
 #PUT INSIDE THE cds THE ATAC CLUSTERING
-class <- as.data.frame(input_cds@clusters@listData[["UMAP"]][["clusters"]])
+class <- as.data.frame(processed_ATAC_cds@clusters@listData[["UMAP"]][["clusters"]])
 colnames(class) <- "CLASS"
 final_GAM_cds@colData@listData[["label"]] <- class$CLASS
 
@@ -574,10 +610,55 @@ AMI
 #SAVING GAGAM AND CLUSTERING
 tsv <- data.matrix(exprs(final_GAM_cds))
 
-write.table(tsv, file='../TMPResults/gagam1.tsv', quote=FALSE, sep='\t', col.names = NA)
-write.table(final_GAM_first, file='../TMPResults/classifications/gagam1.l_classification.tsv', quote=FALSE, sep='\t', col.names = NA)
-write.table(class, file='../TMPResults/classifications/atac_classification.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(tsv, file=paste0('../TMPResults/GAM/',folder,'/gagam.tsv'), quote=FALSE, sep='\t', col.names = NA)
+write.table(final_GAM_first, file=paste0('../TMPREsults/classifications/',folder,'/gagam_classification.tsv'), quote=FALSE, sep='\t', col.names = NA)
+#write.table(class, file=paste0('../TMPResults/classifications/',folder,'atac_classification.tsv'), quote=FALSE, sep='\t', col.names = NA)
 
+
+####### SCRNA-SEQ CONFRONTATION #######
+
+if (exists("CDS_RNA")) {
+final_GAM_cds@colData@listData[["cluster"]] <- final_GAM_first$CLASS
+
+markers <- top_markers(final_GAM_cds, group_cells_by = "label")
+top_specific_markers_gagam <- markers %>%
+  filter(specificity >= 0.15) %>%
+  group_by(cell_group) %>%
+  top_n(1, marker_score)
+top_specific_marker_gagam_ids <- unique(top_specific_markers_gagam %>% pull(gene_id))
+# uncommnet to plot the DE features
+#plot_genes_by_group(final_GAM_cds,
+#                    top_specific_marker_gagam_ids,
+#                    group_cells_by="cluster",
+#                    ordering_type="maximal_on_diag")
+
+
+S <- as.Seurat(cds, counts = "counts", data = NULL)
+CDS_RNA@colData@listData[["activity"]] <- first$CLASS
+C <- as.Seurat(CDS_RNA, counts = "counts", data = NULL)
+C<- NormalizeData(C)
+C <- ScaleData(C)
+S<- NormalizeData(S)
+S <- ScaleData(S)
+
+pdf(paste0("../TMPResults/IMAGES/",folder,"/vlnplot_activity.pdf"))
+VlnPlot(S, features = c("MS4A1", "AGAP1", "KLF4"), group.by = "cluster")
+dev.off()
+pdf(paste0("../TMPResults/IMAGES/",folder,"vlnplot_expression.pdf"))
+VlnPlot(C, features = c("MS4A1", "AGAP1", "KLF4"), group.by = "activity")
+dev.off()
+
+Idents(object = S) <- "cluster"
+Idents(object = C) <- "activity"
+
+pdf(paste0("../TMPResults/IMAGES/",folder,"heatmap_activity.pdf"))
+DoHeatmap(S, features = top_specific_marker_gagam_ids, size = 3)
+dev.off()
+pdf(paste0("../TMPResults/IMAGES/",folder,"heatmap_expression.pdf")
+DoHeatmap(C, features = top_specific_marker_gagam_ids, size = 3)
+dev.off()
+
+}
 
 #######################################################################################
 #
