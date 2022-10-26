@@ -3,14 +3,14 @@
 GAGAM is Genomic Annotated Gene Activity Matrix, a model-driven approach to interpret scATAC-seq accessibility data, to obtain information about gene activity. It is a fundamental step to correlate scATAC-seq with ScRNA-seq. In other words, to link accessibility and expression of genes.
 
 GAGAM v1.0 was used in the experimental setup published in:
-Martini, L., Bardini, R., Savino, A., Di Carlo, S. (2022). GAGAM: A Genomic Annotation-Based Enrichment of scATAC-seq Data for Gene Activity Matrix. In: Rojas, I., Valenzuela, O., Rojas, F., Herrera, L.J., Ortuño, F. (eds) Bioinformatics and Biomedical Engineering. IWBBIO 2022. Lecture Notes in Computer Science(), vol 13347. Springer, Cham. https://doi.org/10.1007/978-3-031-07802-6_2
+Martini, L., Bardini, R., Savino, A., Di Carlo, S. (2022). GAGAM: A Genomic Annotation-Based Enrichment of scATAC-seq Data for Gene Activity Matrix. In: Rojas, I., Valenzuela, O., Rojas, F., Herrera, L.J., Ortuño, F. (eds) Bioinformatics and Biomedical Engineering. IWBBIO 2022. Lecture Notes in Computer Science(), vol 13347. Springer, Cham. https://doi.org/10.1007/978-3-031-07802-6_2.
 
 GAGAM v1.2 was used in the experimental setup in:
 Martini, L., Bardini, R., Savino, A., Di Carlo, S. (2022). GGAGAM v1.2: an improvement on peak labeling and Genomic Annotated Gene Activity Matrix construction. Submmitted for revision for MDPI Genes journal.
 
-This README file lists all available scripts and the full workflow to follow to reproduce the experiment reported in the paper. 
+This README file lists all available scripts and describes the full workflow to reproduce the experiments reported in the paper. 
 
-Shey are divided into:
+They are divided into:
 
 1. R scripts
 1. Python scripts
@@ -53,7 +53,7 @@ For each dataset, download the data from the sources
 - 10X Multiome Chromium X PBMC: https://www.10xgenomics.com/resources/datasets/10-k-human-pbm-cs-multiome-v-1-0-chromium-x-1-standard-2-0-0
 - 10X V2.1.0 Brain: https://www.10xgenomics.com/resources/datasets/8k-adult-mouse-cortex-cells-atac-v1-1-chromium-x-1-1-standard
 
-Organize the data following in proposed folder structure in the TMPDATA folder:
+Organize the data following the proposed folder structure in the TMPDATA folder:
 
 - 10x_V1_PBMChuman
   - barcodes.tsv
