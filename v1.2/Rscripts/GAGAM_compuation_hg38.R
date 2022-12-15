@@ -633,14 +633,14 @@ top_specific_marker_activity_ids <- unique(top_specific_markers_gagam %>% pull(g
 #                    top_specific_marker_gagam_ids,
 #                    group_cells_by="cluster",
 #                    ordering_type="maximal_on_diag")
-write.csv(top_specific_marker_activity_ids, file = paste0("../TMPResults/",folder,"/top_specific_marker_activity_ids.csv"),quote=FALSE, col.names = NA)
+write.csv(top_specific_marker_activity_ids, file = paste0("../TMPResults/AnnData/",folder,"/top_specific_marker_activity_ids.csv"),quote=FALSE, col.names = NA)
 
 top_specific_markers_activity_10 <- markers %>%
   filter(specificity >= 0.15) %>%
   group_by(cell_group) %>%
   top_n(10, marker_score)
 top_specific_marker_activity_10_ids <- unique(top_specific_markers_activity_10 %>% pull(gene_id))
-write.csv(top_specific_marker_activity_10_ids, file = paste0("../TMPResults/",folder,"/top_specific_marker_activity_10_ids.csv"),quote=FALSE, col.names = NA)
+write.csv(top_specific_marker_activity_10_ids, file = paste0("../TMPResults/AnnData/",folder,"/top_specific_marker_activity_10_ids.csv"),quote=FALSE, col.names = NA)
 
 
 S <- as.Seurat(cds, counts = "counts", data = NULL)
@@ -655,11 +655,11 @@ S <- ScaleData(S)
 Idents(object = S) <- "cluster"
 Idents(object = C) <- "activity"
 
-SaveH5Seurat(S, filename = paste0("../TMPResults/",folder,"/activity.h5Seurat"))
-Convert("activity.h5Seurat", dest = "h5ad")
+SaveH5Seurat(S, filename = paste0("../TMPResults/AnnData/",folder,"/activity.h5Seurat"))
+Convert(paste0("../TMPResults/AnnData/",folder,"/activity.h5Seurat"), dest = "h5ad")
 
-SaveH5Seurat(C, filename = paste0("../TMPResults/",folder,"/expression.h5Seurat"))
-Convert("expression.h5Seurat", dest = "h5ad")
+SaveH5Seurat(C, filename = paste0("../TMPResults/AnnData/",folder,"/expression.h5Seurat"))
+Convert(paste0("../TMPResults/AnnData/",folder,"/expression.h5Seurat"), dest = "h5ad")
 
 
 

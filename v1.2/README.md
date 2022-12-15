@@ -39,7 +39,7 @@ Python scripts use the python3 language, and include:
 
 1. **classifyPeaks.py**: labels peaks from a peak file using cCRECombined genomic annotation tracks;
 2. **computeRAGI.py**: computes the RAGI scores for a GAM versus another classification, leveraging a list of housekeeping genes and a list of marker genes.
-
+3. **PlottingViolinHeatmap.py**: Creates the images representing the violin plots and heatmaps for activity and expression of a given lists of genes.
 # Procedure
 
 ## Phase 0: Data preparation
@@ -316,43 +316,45 @@ Rscript GAGAM_computation_mm10.R
 
 ### Output
 
-The script execution outputs the GAGAM, its clustering classifications, IMAGES, and ARI and AMI tables. 
+The script execution outputs the GAGAM, its clustering classifications, IMAGES, ARI and AMI tables, and elements to create the violin plots and heatmaps. 
 
 Path for 10X V1.0.1 PBMC outputs:
   - ../TMPResults/GAM/10x_V1_PBMChuman/gagam.tsv
   - ../TMPResults/classifications/10x_V1_PBMChuman/gagam_classifications.tsv
   - ../TMPResults/metrics/10x_V1_PBMChuman/ARI_AMI_table.tsv
-  - ../TMPResults/IMAGES/10x_V1_PBMChuman/
+  - ../TMPResults/IMAGE/10x_V1_PBMChuman/
 
 Path for 10X V2.0.0 PBMC outputs:
   - ../TMPResults/GAM/10X_V2_PBMC/gagam.tsv
   - ../TMPResults/classifications/10X_V2_PBMC/gagam_classifications.tsv
   - ../TMPResults/metrics/10X_V2_PBMC/ARI_AMI_table.tsv
-  - ../TMPResults/IMAGES/10X_V2_PBMC/
+  - ../TMPResults/IMAGE/10X_V2_PBMC/
 
 Path for Buenrostro2018 outputs:
   - ../TMPResults/GAM/buenrostro/gagam.tsv
   - ../TMPResults/classifications/buenrostro/gagam_classifications.tsv
   - ../TMPResults/metrics/buenrostro/ARI_AMI_table.tsv
-  - ../TMPResults/IMAGES/buenrostro/
+  - ../TMPResults/IMAGE/buenrostro/
 
 Path for 10X Multiome Controller PBMC outputs:
   - ../TMPResults/GAM/10x_PBMC_Multiome_Controller/gagam.tsv
   - ../TMPResults/classifications/10x_PBMC_Multiome_Controller/gagam_classifications.tsv
   - ../TMPResults/metrics/10x_PBMC_Multiome_Controller/ARI_AMI_table.tsv
-  - ../TMPResults/IMAGES/10x_PBMC_Multiome_Controller/
+  - ../TMPResults/IMAGE/10x_PBMC_Multiome_Controller/
+  - ../TMPResults/AnnData/10x_PBMC_Multiome_Controller/
 
 Path for 10X Multiome Chromium X PBMC outputs:
   - ../TMPResults/GAM/10x_PBMC_Multiome_ChromiumX/gagam.tsv
   - ../TMPResults/classifications/10x_PBMC_Multiome_ChromiumX/gagam_classifications.tsv
   - ../TMPResults/metrics/10x_PBMC_Multiome_ChromiumX/ARI_AMI_table.tsv
-  - ../TMPResults/IMAGES/10x_PBMC_Multiome_ChromiumX/
+  - ../TMPResults/IMAGE/10x_PBMC_Multiome_ChromiumX/
+  - ../TMPResults/AnnData/10x_PBMC_Multiome_ChromiumX/
 
 Path for 10X V2.1.0 Brain outputs:
   - ../TMPResults/GAM/10x_v2_mousebrain/gagam.tsv
   - ../TMPResults/classifications/10x_v2_mousebrain/gagam_classifications.tsv
   - ../TMPResults/metrics/10x_v2_mousebrain/ARI_AMI_table.tsv
-  - ../TMPResults/IMAGES/10x_v2_mousebrain/
+  - ../TMPResults/IMAGE/10x_v2_mousebrain/
 
 ## Phase 4: Metrics Calculation
 
@@ -457,3 +459,42 @@ Path for 10x_v2_mousebrain outputs:
   - ../TMPResults/metrics/10x_v2_mousebrain/gagam_RAGI_table.csv
   - ../TMPResults/metrics/10x_v2_mousebrain/cicero_RAGI_table.csv
   - ../TMPResults/metrics/10x_v2_mousebrain/genescoring_RAGI_table.csv
+
+
+## Phase 5
+
+The fifth phase is the creation of violin plots and heatmaps for the joint activity/expression analysis.
+
+### Input
+
+For each dataset, the script takes as input the files from the AnnData folder to create the violin plots and heatmaps for
+activity and expression comparison for the Differentially Active genes.
+
+### Script
+
+- **PlottingViolinHeatmap.py**
+
+### Syntax
+
+```
+## 10X Multiome Controller PBMC ##
+python3 PlottingViolinHeatmap.py '../TMPResults/AnnData/10x_PBMC_Multiome_Controller/activity.h5Seurat' '../TMPResults/AnnData/10x_PBMC_Multiome_Controller/expression.h5Seurat' '../TMPResults/AnnData/10x_PBMC_Multiome_Controller/top_specific_marker_activity_ids.csv' '../TMPResults/AnnData/10x_PBMC_Multiome_Controller/top_specific_marker_activity_10_ids.csv'
+```
+```
+## 10X Multiome Chromium X PBMC ##
+python3 PlottingViolinHeatmap.py '../TMPResults/AnnData/10x_PBMC_Multiome_ChromiumX/activity.h5Seurat' '../TMPResults/AnnData/10x_PBMC_Multiome_ChromiumX/expression.h5Seurat' '../TMPResults/AnnData/10x_PBMC_Multiome_ChromiumX/top_specific_marker_activity_ids.csv' '../TMPResults/AnnData/10x_PBMC_Multiome_ChromiumX/top_specific_marker_activity_10_ids.csv'  
+```
+
+### Output
+
+Path for 10x_PBMC_Multiome_Controller  outputs:
+  - ../TMPResults/IMAGES/10x_PBMC_Multiome_Controller/Activity_violin_plot.png
+  - ../TMPResults/IMAGES/10x_PBMC_Multiome_Controller/Expression_violin_plot.png
+  - ../TMPResults/IMAGES/10x_PBMC_Multiome_Controller/Activity_heatmap.png
+  - ../TMPResults/IMAGES/10x_PBMC_Multiome_Controller/Expression_heatmap.png
+
+Path for 10x_PBMC_Multiome_ChromiumX outputs:
+  - ../TMPResults/IMAGES/10x_PBMC_Multiome_ChromiumX/Activity_violin_plot.png
+  - ../TMPResults/IMAGES/10x_PBMC_Multiome_ChromiumX/Expression_violin_plot.png
+  - ../TMPResults/IMAGES/10x_PBMC_Multiome_ChromiumX/Activity_heatmap.png
+  - ../TMPResults/IMAGES/10x_PBMC_Multiome_ChromiumX/Expression_heatmap.png
