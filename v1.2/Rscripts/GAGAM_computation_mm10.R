@@ -618,46 +618,67 @@ write.table(final_GAM_first, file=paste0('../TMPREsults/classifications/',folder
 ####### SCRNA-SEQ CONFRONTATION #######
 
 if (exists("CDS_RNA")) {
-final_GAM_cds@colData@listData[["cluster"]] <- final_GAM_first$CLASS
-
-markers <- top_markers(final_GAM_cds, group_cells_by = "label")
-top_specific_markers_gagam <- markers %>%
-  filter(specificity >= 0.15) %>%
-  group_by(cell_group) %>%
-  top_n(1, marker_score)
-top_specific_marker_gagam_ids <- unique(top_specific_markers_gagam %>% pull(gene_id))
-# uncommnet to plot the DE features
-#plot_genes_by_group(final_GAM_cds,
-#                    top_specific_marker_gagam_ids,
-#                    group_cells_by="cluster",
-#                    ordering_type="maximal_on_diag")
-
-
-S <- as.Seurat(cds, counts = "counts", data = NULL)
-CDS_RNA@colData@listData[["activity"]] <- first$CLASS
-C <- as.Seurat(CDS_RNA, counts = "counts", data = NULL)
-C<- NormalizeData(C)
-C <- ScaleData(C)
-S<- NormalizeData(S)
-S <- ScaleData(S)
-
-pdf(paste0("../TMPResults/IMAGES/",folder,"/vlnplot_activity.pdf"))
-VlnPlot(S, features = c("MS4A1", "AGAP1", "KLF4"), group.by = "cluster")
-dev.off()
-pdf(paste0("../TMPResults/IMAGES/",folder,"vlnplot_expression.pdf"))
-VlnPlot(C, features = c("MS4A1", "AGAP1", "KLF4"), group.by = "activity")
-dev.off()
-
-Idents(object = S) <- "cluster"
-Idents(object = C) <- "activity"
-
-pdf(paste0("../TMPResults/IMAGES/",folder,"heatmap_activity.pdf"))
-DoHeatmap(S, features = top_specific_marker_gagam_ids, size = 3)
-dev.off()
-pdf(paste0("../TMPResults/IMAGES/",folder,"heatmap_expression.pdf")
-DoHeatmap(C, features = top_specific_marker_gagam_ids, size = 3)
-dev.off()
-
+  
+  final_GAM_first$CLASS <- as.character(final_GAM_first$CLASS)
+  final_GAM_cds@colData@listData[["cluster"]] <- final_GAM_first$CLASS
+  
+  markers <- top_markers(final_GAM_cds, group_cells_by = "cluster")
+  top_specific_markers_gagam <- markers %>%
+    filter(specificity >= 0.15) %>%
+    group_by(cell_group) %>%
+    top_n(1, marker_score)
+  top_specific_marker_activity_ids <- unique(top_specific_markers_gagam %>% pull(gene_id))
+  # uncommnet to plot the DA features
+  #plot_genes_by_group(final_GAM_cds,
+  #                    top_specific_marker_gagam_ids,
+  #                    group_cells_by="cluster",
+  #                    ordering_type="maximal_on_diag")
+  write.csv(top_specific_marker_activity_ids, file = paste0("../TMPResults/",folder,"/top_specific_marker_activity_ids.csv"),quote=FALSE, col.names = NA)
+  
+  top_specific_markers_activity_10 <- markers %>%
+    filter(specificity >= 0.15) %>%
+    group_by(cell_group) %>%
+    top_n(10, marker_score)
+  top_specific_marker_activity_10_ids <- unique(top_specific_markers_activity_10 %>% pull(gene_id))
+  write.csv(top_specific_marker_activity_10_ids, file = paste0("../TMPResults/",folder,"/top_specific_marker_activity_10_ids.csv"),quote=FALSE, col.names = NA)
+  
+  
+  S <- as.Seurat(cds, counts = "counts", data = NULL)
+  CDS_RNA@colData@listData[["cluster"]] <- final_GAM_first$CLASS
+  CDS_RNA@colData@listData[["activity"]] <- final_GAM_first$CLASS
+  C <- as.Seurat(CDS_RNA, counts = "counts", data = NULL)
+  C<- NormalizeData(C)
+  C <- ScaleData(C)
+  S<- NormalizeData(S)
+  S <- ScaleData(S)
+  
+  Idents(object = S) <- "cluster"
+  Idents(object = C) <- "activity"
+  
+  SaveH5Seurat(S, filename = paste0("../TMPResults/",folder,"/activity.h5Seurat"))
+  Convert("activity.h5Seurat", dest = "h5ad")
+  
+  SaveH5Seurat(C, filename = paste0("../TMPResults/",folder,"/expression.h5Seurat"))
+  Convert("expression.h5Seurat", dest = "h5ad")
+  
+  
+  
+  #pdf(paste0("../TMPResults/IMAGES/",folder,"/vlnplot_activity.pdf"))
+  #VlnPlot(S, features = c("MS4A1", "AGAP1", "KLF4"), group.by = "cluster")
+  #dev.off()
+  #pdf(paste0("../TMPResults/IMAGES/",folder,"vlnplot_expression.pdf"))
+  #VlnPlot(C, features = c("MS4A1", "AGAP1", "KLF4"), group.by = "activity")
+  #dev.off()
+  
+  
+  pdf(paste0("../TMPResults/IMAGES/",folder,"heatmap_activity.pdf"))
+  DoHeatmap(S, features = top_specific_marker_gagam_ids, size = 3)
+  dev.off()
+  
+  pdf(paste0("../TMPResults/IMAGES/",folder,"heatmap_expression.pdf"))
+  DoHeatmap(C, features = top_specific_marker_gagam_ids, size = 3)
+  dev.off()
+  
 }
 
 #######################################################################################
