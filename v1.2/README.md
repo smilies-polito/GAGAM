@@ -5,8 +5,8 @@ GAGAM is Genomic Annotated Gene Activity Matrix, a model-driven approach to inte
 GAGAM v1.0 was used in the experimental setup published in:
 Martini, L., Bardini, R., Savino, A., Di Carlo, S. (2022). GAGAM: A Genomic Annotation-Based Enrichment of scATAC-seq Data for Gene Activity Matrix. In: Rojas, I., Valenzuela, O., Rojas, F., Herrera, L.J., Ortuño, F. (eds) Bioinformatics and Biomedical Engineering. IWBBIO 2022. Lecture Notes in Computer Science(), vol 13347. Springer, Cham. https://doi.org/10.1007/978-3-031-07802-6_2.
 
-GAGAM v1.2 was used in the experimental setup in:
-Martini, L., Bardini, R., Savino, A., Di Carlo, S. (2022). GAGAM v1.2: an improvement on peak labeling and Genomic Annotated Gene Activity Matrix construction. Submitted for review for MDPI Genes journal.
+GAGAM v1.2 was used in the experimental setup published in:
+Martini, L., Bardini, R., Savino, A., Di Carlo, S. (2022). GAGAM v1.2: an improvement on peak labeling and Genomic Annotated Gene Activity Matrix construction., Genes, 2023, 14, 115. https://doi.org/10.3390/genes14010115
 
 This README file lists all available scripts and describes the full workflow to reproduce the experiments reported in the paper. 
 
