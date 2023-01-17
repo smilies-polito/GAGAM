@@ -48,8 +48,7 @@ GAGAM v1.2:
 ├── v1.0                                                   //Scripts supporting the construction and analysis of GAGAM v1.0
 │   ├── PythonScripts                                      //Python scripts
 │   │   ├── classifyPeaks.py                               //Python script to label peaks with cCRE genomic annotations
-│   │   ├── computeRAGI.py                                 //Python script to compute RAGI scores of a GAM compared to a set of classifications
-│   │   └── PlottingViolinHeatmap.py                       //Python scripts to plot the violin plot and heatmap for the joint analysis
+│   │   └── computeRAGI.py                                 //Python script to compute RAGI scores of a GAM compared to a set of classifications
 │   └── Rscripts                                           //R scripts
 │   │   ├── 10x_v1_PBMChuman_processing.R                  //R script to preprocess PBMC datasets analysed in the IWBBIO 2022 publication
 │   │   ├── buenrostro_processing.R                        //R script to preprocess the bone marrow dataset analysed in the IWBBIO 2022 publication
@@ -58,7 +57,8 @@ GAGAM v1.2:
 └── v1.2
     ├── PythonScripts                                      //Python scripts
     │   ├── classifyPeaks.py                               //Python script to label peaks with cCRE genomic annotations
-    │   └── computeRAGI.py                                 //Python script to compute RAGI scores of a GAM compared to a set of classifications
+    │   ├── computeRAGI.py                                 //Python script to compute RAGI scores of a GAM compared to a set of classifications
+    │   └── PlottingViolinHeatmap.py                       //Python scripts to plot the violin plot and heatmap for the joint analysis
     └── Rscripts                                           //R scripts
     │   ├── 10x_v1_PBMChuman_processing.R                  //R script to process 10X V1.0.1 PBMC datasets analysed in the MDPI Genes 2022 publication
     │   ├── 10X_V2_PBMC_processing.R                       //R script to process 10X V2.0.0 PBMC dataset analysed in the MDPI Genes 2022 publication
